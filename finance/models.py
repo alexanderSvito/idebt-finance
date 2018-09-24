@@ -13,7 +13,7 @@ class DeptStatus(Enum):
 
 
 class AbstractLoan(models.Model):
-    credit_percentage = models.DecimalField(decimal_places=2)
+    credit_percentage = models.DecimalField(decimal_places=2, max_digits=10)
     is_with_capitalization = models.BooleanField(default=False)
 
     grace_period = models.IntegerField(default=0)
@@ -24,10 +24,10 @@ class AbstractLoan(models.Model):
 
 
 class Offer(AbstractLoan):
-    creditor = models.ForeignKey(User, related_name='offers', on_delete=models.SET_NULL)
-    credit_fund = models.DecimalField(decimal_places=2)
-    min_loan_size = models.DecimalField(decimal_places=2)
-    max_loan_size = models.DecimalField(decimal_places=2)
+    creditor = models.ForeignKey(User, related_name='offers', on_delete=models.CASCADE)
+    credit_fund = models.DecimalField(decimal_places=2, max_digits=10)
+    min_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+    max_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
 
     def overpay_for(self, loan_size):
         percent_days = self.return_period - self.grace_period
@@ -49,9 +49,9 @@ class Offer(AbstractLoan):
 
 
 class Issue(models.Model):
-    borrower = models.ForeignKey(User, related_name='issues', on_delete=models.SET_NULL)
-    amount = models.DecimalField(decimal_places=2)
-    max_overpay = models.DecimalField(decimal_places=2)
+    borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
+    amount = models.DecimalField(decimal_places=2, max_digits=10)
+    max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
     max_credit_period = models.IntegerField()
 
     def to_json(self):
@@ -63,11 +63,11 @@ class Issue(models.Model):
 
 
 class Debt(AbstractLoan):
-    creditor = models.ForeignKey(User, related_name='credits', on_delete=models.SET_NULL)
-    borrower = models.ForeignKey(User, related_name='debts', on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(auto_add=True)
-    loan_size = models.DecimalField(decimal_places=2)
-    credit = models.ForeignKey(Offer, related_name="loans", on_delete=models.SET_NULL)
+    creditor = models.ForeignKey(User, related_name='credits', on_delete=models.CASCADE)
+    borrower = models.ForeignKey(User, related_name='debts', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+    credit = models.ForeignKey(Offer, related_name="loans", on_delete=models.CASCADE)
     is_closed = models.BooleanField(default=False)
     is_frozen = models.BooleanField(default=False)
 
