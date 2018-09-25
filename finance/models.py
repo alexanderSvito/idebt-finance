@@ -36,6 +36,23 @@ class Offer(AbstractLoan):
         else:
             return loan_size * (1 + percent_days * self.credit_percentage)
 
+    def get_issues(self):
+        possible_issues = Issue.objects.filter(
+            amount__lte=self.max_loan_size,
+            amount__gte=self.min_loan_size,
+            min_credit_period__lte=self.return_period
+        )
+        return [
+            issue
+            for issue in possible_issues
+            if self.overpay_for(issue.amount) <= issue.max_overpay
+            and not Match.objects.filter(
+                match_type=Match.OFFER,
+                from_id=issue.id,
+                to_id=self.id
+            ).exists()
+        ]
+
     def to_json(self):
         return {
             'credit_fund': self.credit_fund,
@@ -52,13 +69,30 @@ class Issue(models.Model):
     borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
     amount = models.DecimalField(decimal_places=2, max_digits=10)
     max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
-    max_credit_period = models.IntegerField()
+    min_credit_period = models.IntegerField()
+
+    def get_offers(self):
+        possible_offers = Offer.objects.filter(
+            min_loan_size__lte=self.amount,
+            max_loan_size__gte=self.amount,
+            return_period__gte=self.min_credit_period
+        )
+        return [
+            offer
+            for offer in possible_offers
+            if offer.overpay_for(self.amount) <= self.max_overpay
+            and not Match.objects.filter(
+                match_type=Match.ISSUE,
+                from_id=self.id,
+                to_id=offer.id
+            ).exists()
+        ]
 
     def to_json(self):
         return {
             'desired_size': self.amount,
             'max_overpay': self.max_overpay,
-            'max_credit_period': self.max_credit_period
+            'min_credit_period': self.min_credit_period
         }
 
 
@@ -100,9 +134,11 @@ class Debt(AbstractLoan):
 
     @classmethod
     def create_from(cls, offer_id, issue_id):
-        offer = Offer.objects.find(pk=offer_id)
-        issue = Issue.objects.find(pk=issue_id)
-        return cls.objects.create(
+        offer = Offer.objects.get(pk=offer_id)
+        issue = Issue.objects.get(pk=issue_id)
+        debt = cls.objects.create(
+            creditor=offer.creditor,
+            borrower=issue.borrower,
             loan_size=issue.amount,
             credit=offer,
             credit_percentage=offer.credit_percentage,
@@ -110,6 +146,8 @@ class Debt(AbstractLoan):
             grace_period=offer.grace_period,
             return_period=offer.return_period
         )
+        issue.delete()
+        return debt
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -118,7 +156,7 @@ class Debt(AbstractLoan):
         self.borrower.balance += transaction
         self.creditor.save()
         self.borrower.save()
-        super(Debt, self).save()
+        super(Debt, self).save(force_insert, force_update, using, update_fields)
 
     def to_json(self):
         return {

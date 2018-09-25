@@ -79,6 +79,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'USER': 'postgres',
+        'PASSWORD': 'password',
         'NAME': 'idebt_finance',
     },
 }

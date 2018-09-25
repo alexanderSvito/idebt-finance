@@ -5,17 +5,11 @@ from finance.models import Offer, Issue, Match, Debt
 
 
 def get_offers_for_issue(request, issue_id):
-    issue = Issue.objects.find(pk=issue_id)
+    issue = Issue.objects.get(pk=issue_id)
     if request.method == 'GET':
-        possible_offers = Offer.objects.filter(
-            min_loan_size__le=issue.amount,
-            max_loan_size__ge=issue.amount,
-            return_period__le=issue.max_credit_period
-        )
         return JsonResponse([
             offer.to_json()
-            for offer in possible_offers
-            if offer.overpay_for(issue.amount) <= issue.max_overpay
+            for offer in issue.get_offers()
         ])
 
 
@@ -28,17 +22,11 @@ def create_offer(request):
 
 
 def get_issues_for_offer(request, offer_id):
-    offer = Offer.objects.find(pk=offer_id)
+    offer = Offer.objects.get(pk=offer_id)
     if request.method == 'GET':
-        possible_issues = Issue.objects.filter(
-            amount__le=offer.max_loan_size,
-            amount__ge=offer.min_loan_size,
-            max_credit_period__ge=offer.return_period
-        )
         return JsonResponse([
             issue.to_json()
-            for issue in possible_issues
-            if offer.overpay_for(issue.amount) <= issue.max_overpay
+            for issue in offer.get_issues()
         ])
 
 
@@ -54,20 +42,13 @@ def create_match(request):
     if request.method == 'POST':
         form = MatchForm(request.POST)
         if form.is_valid():
-            form.save()
-            if form.cleaned_data['match_type'] == 'OFF':
-                offer_id = form.cleaned_data['from_id']
-                issue_id = form.cleaned_data['to_id']
-            else:
-                offer_id = form.cleaned_data['to_id']
-                issue_id = form.cleaned_data['from_id']
-            if Match.is_matched(offer_id, issue_id):
-                debt = Debt.create_from(offer_id, issue_id)
+            match, matched, debt = form.save()
+            if matched:
                 return JsonResponse({
                     "status": "matched",
                     "debt": debt.to_json()
-                    })
+                })
             else:
                 return JsonResponse({
-                    "status": "ok",
+                    "status": "ok"
                 })
