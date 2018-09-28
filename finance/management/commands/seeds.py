@@ -1,8 +1,8 @@
 import os
 import random
+import string
 
 from finance.forms import MatchForm
-from users.models import *
 from finance.models import *
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -51,6 +51,21 @@ def get_balance(rating):
     return round(random.triangular(min, max, mode), 2)
 
 
+def get_digit_string(n):
+    return "".join(random.choice(string.digits) for i in range(n))
+
+
+def get_telephone():
+    country_code = get_digit_string(random.randint(1, 3))
+    code = get_digit_string(random.randint(2, 3))
+    phone = "{}-{}-{}".format(
+        get_digit_string(3),
+        get_digit_string(2),
+        get_digit_string(2)
+    )
+    return "+{}({}){}".format(country_code, code, phone)
+
+
 def get_employment_title(rating):
     if rating < 0.2:
         return "Unemployed"
@@ -83,6 +98,7 @@ def create_user():
         'emp_title': get_employment_title(rating),
         'annual_income': get_annual_income(rating),
         'is_creditor': get_is_creditor(),
+        "telephone": get_telephone()
     }
 
 
