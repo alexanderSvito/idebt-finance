@@ -1,100 +1,90 @@
-from django.http import JsonResponse
-from django.core.paginator import Paginator
+from rest_framework import viewsets, permissions, status
 
-from idebt.ajax import ajax
+from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner
+from finance.serializers import OfferSerializer, IssueSerializer, MatchSerializer, DebtSerializer
 
-from finance.forms import OfferForm, IssueForm, MatchForm
-from finance.models import Offer, Issue
-
-
-PER_PAGE = 10
+from finance.models import Offer, Issue, Match, Debt
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
-@ajax(login_required=True, require_GET=True)
-def get_offers_for_issue(request, issue_id):
-    issue = Issue.objects.get(pk=issue_id)
-    offers = issue.get_offers()
-    page = request.GET.get('page')
-    return JsonResponse([
-        offer.to_json()
-        for offer in Paginator(offers, PER_PAGE).get_page(page)
-    ], safe=False)
+class OffersViewSet(viewsets.ModelViewSet):
+    queryset = Offer.objects.all()
+    serializer_class = OfferSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @action(detail=True, permission_classes=[IsCreditor, permissions.IsAuthenticated])
+    def suitable(self, request, pk=None):
+        offer = self.get_object()
+        suitable_issues = offer.get_issues()
+
+        page = self.paginate_queryset(suitable_issues)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(suitable_issues, many=True)
+        return Response(serializer.data)
 
 
-@ajax(login_required=True, require_GET=True, require_POST=True)
-def create_offer(request):
-    if request.method == 'POST':
-        form = OfferForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({"status": "ok"})
+class IssueViewSet(viewsets.ModelViewSet):
+    queryset = Issue.objects.all()
+    serializer_class = IssueSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @action(detail=True)
+    def suitable(self, request, pk=None):
+        issue = self.get_object()
+        suitable_offers = issue.get_offers()
+
+        page = self.paginate_queryset(suitable_offers)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(suitable_offers, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        data = dict(request.data)
+        data["borrower"] = request.user.id
+        serializer = IssueSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
         else:
-            return JsonResponse({
-                "status": "error",
-                "error": form.errors
-            }, status=422)
-    elif request.user.is_creditor:
-        page = request.GET.get('page')
-        return JsonResponse([
-            credit.to_json()
-            for credit in Paginator(request.user.credits, PER_PAGE).get_page(page)
-        ], safe=False)
-    else:
-        return JsonResponse({
-            "status": "error",
-            "error": "Only creditor users allow to list their credits"
-        }, status=403)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
-@ajax(login_required=True, require_GET=True)
-def get_issues_for_offer(request, offer_id):
-    offer = Offer.objects.get(pk=offer_id)
-    issues = offer.get_issues()
-    page = request.GET.get('page')
-    return JsonResponse([
-        issue.to_json()
-        for issue in Paginator(issues, PER_PAGE).get_page(page)
-    ], safe=False)
+class DebtViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Debt.objects.all()
+    serializer_class = DebtSerializer
+    permission_classes = (permissions.IsAuthenticated, IsOwner)
 
-
-@ajax(login_required=True, require_POST=True)
-def create_issue(request):
-    form = IssueForm(request.POST)
-    if form.is_valid():
-        form.save()
-        return JsonResponse({"status": "ok"})
-    else:
-        return JsonResponse({
-            "status": "error",
-            "message": form.errors
-        }, status=422)
-
-
-@ajax(login_required=True, require_POST=True)
-def create_match(request):
-    form = MatchForm(request.POST)
-    if form.is_valid():
-        match, matched, debt = form.save()
-        if matched:
-            return JsonResponse({
-                "status": "matched",
-                "debt": debt.to_json()
-            })
+    def list(self, request, **kwargs):
+        show_credits = kwargs.get('credits', False)
+        if show_credits:
+            return Debt.objects.filter(creditor=request.user)
         else:
-            return JsonResponse({
-                "status": "ok"
-            })
-    else:
-        return JsonResponse({
-            "status": "error",
-            "error": form.errors
-        }, status=422)
+            return Debt.objects.filter(borrower=request.user)
 
 
-@ajax(login_required=True, require_GET=True)
-def get_debts_for_user(request):
-    page = request.GET.get('page')
-    return JsonResponse([
-        debt.to_json()
-        for debt in Paginator(request.user.debts, PER_PAGE).get_page(page)
-    ], safe=False)
+class MatchViewSet(viewsets.ModelViewSet):
+    queryset = Match.objects.all()
+    serializer_class = MatchSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdminOrPostOnly)
+
+    def create(self, request):
+        serializer = MatchSerializer(data=request.data)
+        if serializer.is_valid():
+            match, is_matched = serializer.save()
+            if is_matched:
+                return Response({'status': 'matched'})
+            else:
+                return Response({'status': 'ok'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+

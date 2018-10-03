@@ -1,15 +1,15 @@
-from finance.views import (
-    get_offers_for_issue,
-    create_offer,
-    get_issues_for_offer,
-    create_issue
-)
-from django.urls import path
+from finance import views
+from django.conf.urls import url, include
+from rest_framework.routers import DefaultRouter
+
+
+router = DefaultRouter()
+router.register(r'offers', views.OffersViewSet)
+router.register(r'issues', views.IssueViewSet)
+router.register(r'debts', views.DebtViewSet)
+router.register(r'match', views.MatchViewSet)
 
 
 urlpatterns = [
-    path('offers/<int:issue_id>', get_offers_for_issue),
-    path('offers/', create_offer),
-    path('issues/<int:offer_id>', get_issues_for_offer),
-    path('issues/', create_issue),
+    url(r'^', include(router.urls))
 ]

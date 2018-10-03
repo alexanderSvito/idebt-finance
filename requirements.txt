@@ -1,3 +1,4 @@
+djangorestframework
 decorator
 PyJWT
 Django==2.0.8
