@@ -1,20 +1,13 @@
-from idebt.ajax import ajax
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from users.serializers import UserSerializer
 
-from users.forms import RegisterForm
-from django.http import JsonResponse
 
-
-@ajax(require_POST=True)
+@api_view(['POST'])
 def signup(request):
-    form = RegisterForm(request.POST)
-    if form.is_valid():
-        user = form.save()
-        return JsonResponse({
-            "status": "ok",
-            "user": user.to_json()
-        })
-    else:
-        return JsonResponse({
-            "status": "error",
-            "message": form.errors
-        }, status=422)
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

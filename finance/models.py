@@ -178,6 +178,7 @@ class Match(models.Model):
     match_type = models.CharField(max_length=3)
     from_id = models.BigIntegerField()
     to_id = models.BigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @classmethod
     def is_matched(cls, offer_id, issued_id):
