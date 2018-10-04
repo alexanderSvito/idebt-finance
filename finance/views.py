@@ -21,29 +21,29 @@ class OffersViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(suitable_issues)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = IssueSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(suitable_issues, many=True)
+        serializer = IssueSerializer(suitable_issues, many=True)
         return Response(serializer.data)
 
 
 class IssueViewSet(viewsets.ModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwner)
 
-    @action(detail=True)
+    @action(detail=True, permission_classes=[permissions.IsAuthenticated])
     def suitable(self, request, pk=None):
         issue = self.get_object()
         suitable_offers = issue.get_offers()
 
         page = self.paginate_queryset(suitable_offers)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = OfferSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(suitable_offers, many=True)
+        serializer = OfferSerializer(suitable_offers, many=True)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
