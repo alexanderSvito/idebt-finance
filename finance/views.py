@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status
 
+from finance.exceptions import TransferError
 from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner
 from finance.serializers import OfferSerializer, IssueSerializer, MatchSerializer, DebtSerializer
 
@@ -50,9 +51,15 @@ class IssueViewSet(viewsets.ModelViewSet):
         data["borrower"] = request.user.id
         serializer = IssueSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
+            try:
+                serializer.save()
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            except TransferError as e:
+                return Response({
+                    'status': 'error',
+                    'message': e
+                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -63,12 +70,47 @@ class DebtViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DebtSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
 
-    def list(self, request, **kwargs):
-        show_credits = kwargs.get('credits', False)
-        if show_credits:
-            return Debt.objects.filter(creditor=request.user)
+    @action(detail=False)
+    def i_owe(self, request):
+        debts = Debt.objects.filter(borrower=request.user)
+
+        page = self.paginate_queryset(debts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(debts, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def owe_me(self, request):
+        debts = Debt.objects.filter(creditor=request.user)
+
+        page = self.paginate_queryset(debts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(debts, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True)
+    def repay(self, request, pl=None):
+        debt = self.get_object()
+        if debt.is_repayable:
+            try:
+                debt.repay_funds()
+                return Response({'status': 'ok'})
+            except TransferError as e:
+                return Response({
+                    'status': 'error',
+                    'message': e
+                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         else:
-            return Debt.objects.filter(borrower=request.user)
+            return Response({
+                'status': 'error',
+                'message': 'Insufficient funds'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MatchViewSet(viewsets.ModelViewSet):
