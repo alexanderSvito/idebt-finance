@@ -1,6 +1,8 @@
 from enum import Enum
 
-from django.db import models
+from django.db import models, DatabaseError, transaction
+
+from finance.exceptions import TransferError
 from idebt.helpers import get_days_from_to_date
 from users.models import User
 
@@ -123,6 +125,10 @@ class Debt(AbstractLoan):
         return self._count_size_for_days(days_passed)
 
     @property
+    def is_repayable(self):
+        return self.current_size <= self.borrower.balance
+
+    @property
     def size_in_week(self):
         days_passed = get_days_from_to_date(self.created_at)
         return self._count_size_for_days(days_passed + 7)
@@ -146,17 +152,35 @@ class Debt(AbstractLoan):
             grace_period=offer.grace_period,
             return_period=offer.return_period
         )
+        debt.issue_funds()
         issue.delete()
         return debt
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        transaction = self.loan_size
-        self.creditor.balance -= transaction
-        self.borrower.balance += transaction
-        self.creditor.save()
-        self.borrower.save()
-        super(Debt, self).save(force_insert, force_update, using, update_fields)
+    def transfer_funds(self, sender, receiver, amount):
+        try:
+            with transaction.atomic():
+                sender.balance -= amount
+                receiver.balance += amount
+                sender.save()
+                receiver.save()
+        except DatabaseError as e:
+            raise TransferError("Can't transfer funds") from e
+
+    def issue_funds(self):
+        amount = self.loan_size
+        self.transfer_funds(
+            self.creditor,
+            self.borrower,
+            amount
+        )
+
+    def repay_funds(self):
+        amount = self.current_size
+        self.transfer_funds(
+            self.borrower,
+            self.creditor,
+            amount
+        )
 
     def to_json(self):
         return {
