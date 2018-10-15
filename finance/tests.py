@@ -1,3 +1,7 @@
 from django.test import TestCase
+from finance.models import Offer
 
-# Create your tests here.
+
+class OffersTestCase(TestCase):
+    def setUp(self):
+        pass

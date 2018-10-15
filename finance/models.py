@@ -1,9 +1,10 @@
 from enum import Enum
 
 from django.db import models, DatabaseError, transaction
+from django.conf import settings
 
 from finance.exceptions import TransferError
-from idebt.helpers import get_days_from_to_date
+from idebt.helpers import get_days_from_to_date, get_admin
 from users.models import User
 
 
@@ -181,12 +182,25 @@ class Debt(AbstractLoan):
         )
 
     def repay_funds(self):
-        amount = self.current_size
-        self.transfer_funds(
-            self.borrower,
-            self.creditor,
-            amount
-        )
+        amount_for_creditor, amount_for_us = self.split_amount()
+        admin = get_admin()
+        with transaction.atomic():
+            self.transfer_funds(
+                self.borrower,
+                self.creditor,
+                amount_for_creditor
+            )
+            self.transfer_funds(
+                self.borrower,
+                admin,
+                amount_for_us
+            )
+
+    def split_profit(self):
+        profit = self.current_size - self.loan_size
+        our_profit = profit * settings.SHARE_PERCENTAGE
+        creditor_profit = profit * (1 - settings.SHARE_PERCENTAGE)
+        return self.loan_size + creditor_profit, our_profit
 
     def to_json(self):
         return {
