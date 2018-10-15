@@ -1,13 +1,108 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status, viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
-from users.serializers import UserSerializer
+
+from finance.permissions import IsSelf
+from users.models import User
+from users.serializers import ShallowUserSerializer, UserSerializer, PasswordSerializer, BalanceSerializer
 
 
-@api_view(['POST'])
-def signup(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request, **kwargs):
+        users = self.get_queryset()
+
+        page = self.paginate_queryset(users)
+
+        if not request.user.is_staff and not request.user.is_superuser:
+            serializer = ShallowUserSerializer(page, many=True)
+        else:
+            serializer = self.get_serializer(page, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        else:
+            return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        if not request.user.is_staff and not request.user.is_superuser:
+            serializer = ShallowUserSerializer(user)
+        else:
+            serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    @action(methods=['get'], detail=False)
+    def me(self, request, **kwargs):
+        user = request.user
+        user.password = '<hidden>'
+        serializer = self.get_serializer(instance=user)
+        return Response(serializer.data)
+
+    @action(methods=['post'], detail=True, permission_classes=[IsSelf])
+    def set_password(self, request, pk=None, **kwargs):
+        user = self.get_object()
+        serializer = PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.save())
+            user.save()
+            return Response({'status': 'password set'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'],
+            detail=True, url_path='balance/replenish',
+            permission_classes=[IsSelf])
+    def replenish(self, request, pk=None, **kwargs):
+        user = self.get_object()
+        serializer = BalanceSerializer(
+            instance=user.balance,
+            data={
+                "owner": user.id,
+                "balance": user.balance.balance + request.data['amount']
+            }
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': 'balance updated'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'],
+            detail=True, url_path='balance/withdraw',
+            permission_classes=[IsSelf])
+    def withdraw(self, request, pk=None, **kwargs):
+        user = self.get_object()
+        serializer = BalanceSerializer(
+            instance=user.balance,
+            data={
+                "owner": user.id,
+                "balance": user.balance.balance - request.data['amount']
+            }
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': 'balance updated'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=False, permission_classes=[])
+    def signup(self, request, **kwargs):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            password = PasswordSerializer(data=request.data)
+            if password.is_valid():
+                user = serializer.save()
+                password = password.save()
+                user.password = password
+                user.save()
+                shallow = ShallowUserSerializer(serializer.data)
+                return Response(shallow.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

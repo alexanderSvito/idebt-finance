@@ -119,6 +119,12 @@ class Debt(AbstractLoan):
         else:
             return DeptStatus.PENDING
 
+    def _count_size_for_days(self, days):
+        if self.is_with_capitalization:
+            return self.loan_size * (1 + self.credit_percentage) ** days
+        else:
+            return self.loan_size * (1 + days * self.credit_percentage)
+
     @property
     def current_size(self):
         days_passed = get_days_from_to_date(self.created_at)
@@ -126,7 +132,7 @@ class Debt(AbstractLoan):
 
     @property
     def is_repayable(self):
-        return self.current_size <= self.borrower.balance
+        return self.current_size <= self.borrower.balance.balance
 
     @property
     def size_in_week(self):
@@ -159,10 +165,10 @@ class Debt(AbstractLoan):
     def transfer_funds(self, sender, receiver, amount):
         try:
             with transaction.atomic():
-                sender.balance -= amount
-                receiver.balance += amount
-                sender.save()
-                receiver.save()
+                sender.balance.balance -= amount
+                receiver.balance.balance += amount
+                sender.balance.save()
+                receiver.balance.save()
         except DatabaseError as e:
             raise TransferError("Can't transfer funds") from e
 
@@ -205,16 +211,16 @@ class Match(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     @classmethod
-    def is_matched(cls, offer_id, issued_id):
+    def is_matched(cls, offer_id, issue_id):
         offer_match_exists = cls.objects.filter(
             match_type=cls.OFFER,
             from_id=offer_id,
-            to_id=issued_id
+            to_id=issue_id
         ).exists()
 
         issue_match_exists = cls.objects.filter(
             match_type=cls.ISSUE,
-            from_id=issued_id,
+            from_id=issue_id,
             to_id=offer_id
         ).exists()
 

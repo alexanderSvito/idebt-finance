@@ -2,12 +2,13 @@ import os
 import random
 import string
 
-from finance.forms import MatchForm
 from finance.models import *
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from decimal import Decimal as D
 
+from finance.serializers import MatchSerializer
+from users.serializers import UserSerializer
 
 DATA_DIR = os.path.join(settings.BASE_DIR, 'idebt','data')
 USERNAMES = open(os.path.join(DATA_DIR, 'usernames.txt')).readlines()
@@ -83,6 +84,14 @@ def get_is_creditor():
     return random.random() < 0.65
 
 
+def get_passport_number():
+    possible_letters = string.ascii_uppercase + string.digits
+    return "{}-{}".format(
+        random.sample(possible_letters, 10),
+        random.sample(possible_letters, 10)
+    )
+
+
 def create_user():
     username = get_username()
     gender = get_gender()
@@ -93,17 +102,17 @@ def create_user():
         'first_name': first_name,
         'last_name': last_name,
         'email': get_email(username),
-        'balance': get_balance(rating),
         'rating': rating,
         'emp_title': get_employment_title(rating),
         'annual_income': get_annual_income(rating),
         'is_creditor': get_is_creditor(),
-        "telephone": get_telephone()
+        'telephone': get_telephone(),
+        'passport_number': get_passport_number()
     }
 
 
 def create_offer(user):
-    credit_fund = round(user.balance * D(random.triangular(0, 1, 0.2)))
+    credit_fund = round(user.balance.balance * D(random.triangular(0, 1, 0.2)))
     max_loan_size = round(random.triangular(credit_fund / 10, credit_fund, credit_fund / 5))
     min_loan_size = round(random.triangular(credit_fund / 20, credit_fund / 10, credit_fund / 15))
     percentage = random.random() * 10
@@ -122,7 +131,7 @@ def create_offer(user):
 
 
 def create_issue(user):
-    amount = round(user.balance * D(random.triangular(0.5, 3.0, 1.25)))
+    amount = round(user.balance.balance * D(random.triangular(0.5, 3.0, 1.25)))
     max_overpay = amount * random.random() * 5
     min_credit_period = random.randint(3, 31)
     return {
@@ -143,11 +152,14 @@ class Command(BaseCommand):
 
     def populate_users(self, num):
         for i in range(num):
-            new_user, created = User.objects.get_or_create(**create_user())
-            if created:
+            serializer = UserSerializer(data=create_user())
+            if serializer.is_valid():
+                user = serializer.save()
+                user.balance.balance = get_balance(user.rating)
+                user.balance.save()
                 self.stdout.write("User {} {} created".format(
-                    new_user.first_name,
-                    new_user.last_name
+                    user.first_name,
+                    user.last_name
                 ))
 
     def populate_offers_and_issues(self):
@@ -156,8 +168,8 @@ class Command(BaseCommand):
                 anchor = 1
                 while random.random() < anchor:
                     offer = user.offers.create(**create_offer(user))
-                    user.balance -= offer.credit_fund
-                    user.save()
+                    user.balance.balance -= offer.credit_fund
+                    user.balance.save()
                     anchor *= 0.7
 
             anchor = 0.5 if user.is_creditor else 1
@@ -179,15 +191,15 @@ class Command(BaseCommand):
             ))
             for issue in issues:
                 if random.random() < 0.7:
-                    form = MatchForm({
+                    serializer = MatchSerializer(data={
                         "match_type": Match.OFFER,
                         "from_id": offer.id,
                         "to_id": issue.id
                     })
-                    match, matched, debt = form.save()
-                    if matched:
-                        self.stdout.write("Debt created")
-
+                    if serializer.is_valid():
+                        match, matched = serializer.save()
+                        if matched:
+                            self.stdout.write("Debt created")
         for issue in Issue.objects.all():
             offers = issue.get_offers()
             self.stdout.write("Inspecting issue {}. Has {} offers available".format(
@@ -196,14 +208,16 @@ class Command(BaseCommand):
             ))
             for offer in offers:
                 if random.random() < 0.8:
-                    form = MatchForm({
+                    serializer = MatchSerializer(data={
                         "match_type": Match.ISSUE,
                         "from_id": issue.id,
                         "to_id": offer.id
                     })
-                    match, matched, debt = form.save()
-                    if matched:
-                        self.stdout.write("Debt created")
+                    if serializer.is_valid():
+                        match, matched = serializer.save()
+                        if matched:
+                            self.stdout.write("Debt created")
+                            break
 
     def handle(self, *args, **options):
         random.seed(options['seed'])
