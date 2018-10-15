@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from finance.models import Offer, Issue, Debt, Match
+from users.models import User
 
 
 class OfferSerializer(serializers.ModelSerializer):
@@ -7,6 +8,7 @@ class OfferSerializer(serializers.ModelSerializer):
         model = Offer
         fields = (
             'id',
+            'creditor',
             'credit_fund',
             'min_loan_size',
             'max_loan_size',
@@ -15,6 +17,12 @@ class OfferSerializer(serializers.ModelSerializer):
             'grace_period',
             'return_period',
         )
+
+    def validate_credit_fund(self, value):
+        user = User.objects.get(pk=self.initial_data['creditor'])
+        if value > user.balance.balance:
+            raise serializers.ValidationError("Can't make credit fund bigger than user's balance")
+        return value
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -30,12 +38,14 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
 class DebtSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='status.value')
+
     class Meta:
         model = Debt
         fields = (
             'id',
             'status',
-            'initial_size',
+            'loan_size',
             'current_size',
             'size_in_week',
             'size_in_month',

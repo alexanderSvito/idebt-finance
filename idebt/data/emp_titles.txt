@@ -1,79 +1,447 @@
+.NET Developer
+Accountant
 Accounts receivable
+Accounts receivable/payable specialist
+Actuary
+Advertising Managers and Promotions Managers
+Advertising Sales Agent
+Aircraft Mechanic
+Airline Pilot
+Airport Security Screener
+Analyst
+Analytical Lab Technician
+Analytical Services Chemist
+Animal Groomer
+Animator
+Application Developer
+Application Support Analyst
+Applications Engineer
+Architect
+Art Director
+Assay Development Specialist
 Assessor
+Assistant Field Technician
+Assistant Technician
+Associate Developer
+Associate Producer
+Associate Professor
+Audio and Video Equipment Technician
 Auditor
-Bookkeeper
-Budget analyst
-Cash manager
-Chief financial officer
-Controller
-Credit manager
-Tax specialist
-Treasurer
+Auto Mechanic
+Bank Teller
+Bartender
 Benefits officer
+Bioanalytical Scientist
+Biochemist
+Bioinformatics Research Scientist
+Biology Professor
+Biomedical Engineer
+Bookkeeper
+Bookkeeping, Accounting, and Auditing Clerks
+Brick Mason
+Broadcaster
+Budget Analyst
+Budget analyst
+Business Analyst
+Business System Analyst
+Business broker
+Business systems analyst
+Business transfer agent
+Camera Operator
+Cardiovascular Technologist
+Cash manager
+Cashier
+Cell Biology Scientist
+Cell Line Development Manager
+Certified financial planner
+Chartered wealth manager
+Chef
+Chemical Engineer
+Chemical Technician
+Chemist
+Chief Information Officer (CIO)
+Chief Technology Officer (CTO)
+Chief financial officer
+Claims Adjuster, Appraiser, Examiner, and Investigator
+Claims adjuster
+Climate Data Analyst
+Clinical Data Research
+Clinical Pharmacology Professor
+Clinical Pharmacy Assistant
+Clinical Research Associate
+Clinical Research Coordinator
+Clinical Research Director
+Cloud Architect
+Cloud Consultant
+Cloud Product and Project Manager
+Cloud Services Developer
+Cloud Software and Network Engineer
+Cloud System Administrator
+Cloud System Engineer
+Commercial appraiser
+Commercial real estate agent
+Commercial real estate broker
 Compensation analyst
-Employee relations specialist
-HR coordinator
-HR specialist
-Retirement plan counselor
-Staffing consultant
-Union organizer
-Credit manager
-Financial analyst
-Hedge fund trader
-Investment advisor
-Leveraged buyout investor
-Loan officer
-Mortgage banker
-Mutual fund analyst
-Portfolio manager
-Ratings analyst
-Stockbroker
-Trust officer
+Compensation and Benefits Manager
+Compliance Technician
+Computational Chemistry Manager
+Computer Network Architect
+Computer Programmer
+Computer Systems Analyst
+Computer Systems Manager
+Computer and Information Research Scientist
+Computer and Information Systems Manager
+Computing Consultant
+Conservation Technician
+Construction Laborer
+Consultant
 Content manager
 Content strategist
-Database administrator
-Digital marketing manager
-Full stack developer
-Information architect
-Marketing technologist
-Mobile developer
-Project manager
-Social media manager
-Software engineer
-Systems engineer
-Software developer
-Systems administrator
-User interface specialist
-Web analytics developer
-Web developer
-Insurance agent
-Insurance broker
-Insurance investigator
-Loss control specialist
-Real estate officer
-Residential appraiser
-Broadcaster
-Journalist
-News Analyst
-Reporter
-Television Announcer
-Writer
-Animator
-Associate Producer
-Audio and Video Equipment Technician
-Camera Operator
-Line Producer
-Photo Editor
-Photographer
-Producer
-Proofreader
-Radio Operator
-Recording Engineer
-Sound Mixer
-Technical Producer
-Videographer
-Art Director
+Controller
+Correctional Officer
+Court Reporter
 Creative Director
+Credit analyst
+Credit manager
+Curator
+Customer Service Representative
+Customer Support Administrator
+Customer Support Specialist
+Damage appraiser
+Data Center Support Specialist
+Data Quality Manager
+Database Administrator
+Database administrator
+Dental Hygienist
+Dentist
 Designer
+Desktop Support Manager
+Desktop Support Specialist
+Developer
+Development Technologist
+Diagnostic Medical Sonographer
+Dietitian/Nutritionist
+Digital marketing manager
+Director of Technology
+Doctor
+Drug Evaluator
+Drug Regulatory Affairs Manager
+EMTs and Paramedics
+Editor
+Electrician
+Employee relations specialist
+Environmental Data Analyst
+Environmental Emergencies Assistant
+Environmental Emergencies Planner
+Environmental Engineer
+Environmental Health Scientist
+Environmental Project Analyst
+Environmental Research Assistant
+Environmental Scientist
+Environmental Services Representative
+Environmental Specialist
+Epidemiologist
+Event/Meeting Planner
+Exploration Director
+Fashion Designer
+Field Applications Specialist
+Field Technician
+Financial Advisor
+Financial Analyst
+Financial analyst
+Firefighter
+Fitness Trainer
+Flight Attendant
+Forensic Chemist
+Forensic Scientist
+Front End Developer
+Full stack developer
+Fundraiser
+Funeral Director
+Gene Editing Manager
+Genetic Counselor
+Glazier
+Grants/Proposal Writer
 Graphic Artist
 Graphic Designer
+Groundwater Technician
+Guidance Counselor
+HR coordinator
+HR specialist
+Hairdressers, Hairstylists, and Cosmetologists
+Hardware Designer
+Health Educator
+Health Research Assistant
+Health Technology Assistant
+Hedge fund manager
+Hedge fund principal
+Hedge fund trader
+Help Desk Specialist
+Help Desk Technician
+Home Health Aide
+Hospital Accounting Analyst
+Hospital Research Assistant
+Human Factors Engineer
+Human Resources Manager
+Hydrologist
+IT Analyst
+IT Coordinator
+IT Director
+IT Manager
+IT Support Manager
+IT Support Specialist
+IT Support Staff
+IT Systems Administrator
+Immunology Scientist
+Industrial Designer
+Information Security
+Information architect
+Institutional Research Director
+Insurance Representative
+Insurance Underwriter
+Insurance adjuster
+Insurance agent
+Insurance appraiser
+Insurance broker
+Insurance claims examiner
+Insurance investigator
+Interior Designer
+Interpreter and Translator
+Intranet Specialist
+Intranet Support
+Investment advisor
+Investment banker
+Investor relations officer
+Janitor
+Java Developer
+Journalist
+Judge
+Junior Analyst
+Junior Software Engineer
+Laboratory Assistant
+Laboratory Instructor
+Laboratory Manager
+Laboratory Technician
+Lawyer
+Leveraged buyout investor
+Librarian
+Licensed Practical Nurse
+Line Producer
+Loan Officer
+Loan officer
+Loss control specialist
+Management Information Systems Director
+Manicurist
+Market Access Analyst
+Market Access Associate
+Market Research Analyst
+Marketing Consultant
+Marketing technologist
+Marriage and Family Therapist
+Mechanical Engineer
+Medical Assistant
+Medical Communications Director
+Medical Laboratory Technician
+Medical Physics Researcher
+Medical Research Assistant
+Medical Research Technician
+Medical Scientist
+Medical Services Assistant
+Mobile developer
+Molecular Biologist
+Molecular Scientist
+Mortgage banker
+Mutual fund analyst
+Network Administrator
+Network Architect
+Network Engineer
+Network Systems Administrator
+Network and Computer Systems Administrator
+News Analyst
+Nursing Assistant
+Occupational Therapist
+Oncology Researcher
+Operations Clerk
+Operations Research Analysis Manager
+Operations Section Manager
+Operations Supervisor
+Operations Team Leader
+Operations Unit Manager
+Organic Lab Research Assistant
+Organic Lab Worker
+Paralegal and Legal Assistant
+Pharmaceutical Assistant
+Pharmaceutical Marketing Assistant
+Pharmaceutical Research Analyst
+Pharmaceutical Research Assistant
+Pharmaceutical Research Technician
+Pharmaceutical Technician
+Pharmacist
+Pharmacovigilance Supervisor
+Pharmacy Affairs Assistant
+Pharmacy Assistant
+Pharmacy Innovation Assistant
+Pharmacy Technician
+Photo Editor
+Photographer
+Physical Therapist
+Physical Therapy Assistant
+Physician Assistant
+Plumber
+Police Officer
+Portfolio management marketing
+Portfolio manager
+Postal Service Worker
+Power Regulator
+Process Engineer
+Process Inspector
+Process Research Manager
+Producer
+Product Engineer
+Product Test Specialist
+Production Team Leader
+Production Test Supervisor
+Professional Programs Assistant
+Programmer
+Programmer Analyst
+Project Manager
+Project manager
+Proofreader
+Public Health Specialist
+Public Relations Specialist
+Purchasing Manager
+Quality Assistant
+Quality Assurance Manager
+Quality Assurance Technologist
+Quality Control Analyst
+Quality Control Manager
+Quality Control Supervisor
+Radio Operator
+Ratings analyst
+Real estate appraiser
+Real estate officer
+Receptionist
+Recording Engineer
+Registered Nurse
+Regulatory Affairs Associate
+Regulatory Affairs Director
+Regulatory Officer
+Rehabilitation Engineering Assistant
+Reimbursement Analyst
+Reporter
+Research Assistant
+Research Chemist
+Research Scientist
+Research Team Leader
+Research Technician
+Research and Development Associate
+Research and Development Chemist
+Research and Development Director
+Research and Development Manager
+Research and Development Supervisor
+Research and Development Technician
+Research and Development Tester
+Research and Innovation Manager
+Researcher
+Residential appraiser
+Residential real estate agent
+Residential real estate broker
+Retail Analyst
+Retail Salesperson
+Retail Supervisor
+Retirement plan counselor
+STEM Career Advisor
+Safety Data Specialist
+Sales Analyst
+Satellite Data Analyst
+Science Technician
+Scientific Artist
+Scientific Programmer
+Scientific Project Manager
+Scientific Writer
+Secretary / Administrative Assistant
+Security Guard
+Security Specialist
+Senior Applications Engineer
+Senior Database Administrator
+Senior Network Architect
+Senior Network Engineer
+Senior Network System Administrator
+Senior Pharmacy Student
+Senior Programmer
+Senior Programmer Analyst
+Senior Security Specialist
+Senior Software Engineer
+Senior Support Specialist
+Senior System Administrator
+Senior System Analyst
+Senior System Architect
+Senior System Designer
+Senior Systems Software Engineer
+Senior Web Administrator
+Senior Web Developer
+Social Media Manager
+Social Worker
+Social media manager
+Software Architect
+Software Developer
+Software Engineer
+Software Engineering Assistant
+Software Quality Assurance Analyst
+Software developer
+Software engineer
+Solid Waste Field Technician
+Sound Mixer
+Special Education Teacher
+Special Projects Coordinator
+Staffing consultant
+Statistician
+Stem Cell Researcher
+Stockbroker
+Structural Biologist
+Structural Engineer
+Support Specialist
+System Architect
+Systems Administrator
+Systems Analyst
+Systems Designer
+Systems Software Engineer
+Systems administrator
+Systems engineer
+Tax specialist
+Teacher
+Teacher Assistant
+Technical Application Specialist
+Technical Operations Officer
+Technical Producer
+Technical Specialist
+Technical Support Engineer
+Technical Support Specialist
+Technical Support Technician
+Technical Writer
+Technology Research Analyst
+Technology Research Manager
+Technology Specialist
+Telecommunications Specialist
+Television Announcer
+Therapeutic Director
+Total Quality Management Director
+Total Quality Manager
+Toxicologist
+Transportation Project Manager
+Treasurer
+Trust officer
+Underwriter
+Union organizer
+User interface specialist
+Veterinarian
+Videographer
+Waiter/Waitress
+Web Administrator
+Web Developer
+Web analytics developer
+Web developer
+Webmaster
+Writer
+Writer and Editor
+Benefits officer

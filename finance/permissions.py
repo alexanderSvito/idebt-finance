@@ -7,13 +7,11 @@ class IsAdminOrPostOnly(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
+
         if request.method == 'POST':
             return True
 
-        # Write permissions are only allowed to the owner of the snippet.
-        return request.user.is_staff
+        return request.user.is_staff or request.user.is_superuser
 
 
 class IsCreditor(permissions.BasePermission):
@@ -25,3 +23,14 @@ class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user == obj.borrower or request.user == obj.creditor
 
+
+class IsSelf(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if hasattr(obj, 'owner'):
+            return request.user == obj.owner
+        return request.user == obj
+
+
+class IsBorrower(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.borrower
