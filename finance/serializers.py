@@ -40,6 +40,10 @@ class IssueSerializer(serializers.ModelSerializer):
 class DebtSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='status.value')
 
+    current_size = serializers.DecimalField(max_digits=20, decimal_places=2)
+    size_in_week = serializers.DecimalField(max_digits=20, decimal_places=2)
+    size_in_month = serializers.DecimalField(max_digits=20, decimal_places=2)
+
     class Meta:
         model = Debt
         fields = (

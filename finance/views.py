@@ -9,24 +9,52 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 
-class OffersViewSet(viewsets.ModelViewSet):
-    queryset = Offer.objects.all()
-    serializer_class = OfferSerializer
-    permission_classes = (permissions.IsAuthenticated, IsCreditor)
+class ListMixin(viewsets.ReadOnlyModelViewSet):
+    OWNER_NAME = None
 
     def list(self, request, *args, **kwargs):
-        offers = self.get_queryset()
+        objects = self.get_queryset()
 
         if not request.user.is_superuser and not request.user.is_staff:
-            offers = offers.filter(creditor=request.user)
+            objects = objects.filter(**{self.OWNER_NAME: request.user})
 
-        page = self.paginate_queryset(offers)
+        page = self.paginate_queryset(objects)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(offers, many=True)
+        serializer = self.get_serializer(objects, many=True)
         return Response(serializer.data)
+
+
+class CreateMixin(viewsets.ReadOnlyModelViewSet):
+    OWNER_NAME = None
+
+    def create(self, request, *args, **kwargs):
+        data = dict(request.data)
+        data[self.OWNER_NAME] = request.user.id
+        serializer = self.get_serializer(data=data)
+        if serializer.is_valid():
+            try:
+                serializer.save()
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            except TransferError as e:
+                return Response({
+                    'status': 'error',
+                    'message': e
+                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class OffersViewSet(ListMixin, CreateMixin):
+    OWNER_NAME = 'creditor'
+
+    queryset = Offer.objects.all()
+    serializer_class = OfferSerializer
+    permission_classes = (permissions.IsAuthenticated, IsCreditor)
 
     @action(detail=True)
     def suitable(self, request, pk=None):
@@ -41,43 +69,13 @@ class OffersViewSet(viewsets.ModelViewSet):
         serializer = IssueSerializer(suitable_issues, many=True)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        data = dict(request.data)
-        data["creditor"] = request.user.id
-        serializer = self.get_serializer(data=data)
-        if serializer.is_valid():
-            try:
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            except TransferError as e:
-                return Response({
-                    'status': 'error',
-                    'message': e
-                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
 
+class IssueViewSet(ListMixin, CreateMixin):
+    OWNER_NAME = 'borrower'
 
-class IssueViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
-
-    def list(self, request, *args, **kwargs):
-        issues = self.get_queryset()
-
-        if not request.user.is_superuser and not request.user.is_staff:
-            issues = issues.filter(borrower=request.user)
-
-        page = self.paginate_queryset(issues)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(issues, many=True)
-        return Response(serializer.data)
 
     @action(detail=True, permission_classes=[permissions.IsAuthenticated])
     def suitable(self, request, pk=None):
@@ -92,43 +90,12 @@ class IssueViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = OfferSerializer(suitable_offers, many=True)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        data = dict(request.data)
-        data["borrower"] = request.user.id
-        serializer = self.get_serializer(data=data)
-        if serializer.is_valid():
-            try:
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            except TransferError as e:
-                return Response({
-                    'status': 'error',
-                    'message': e
-                }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
 
-
-class DebtViewSet(viewsets.ReadOnlyModelViewSet):
+class DebtViewSet(ListMixin):
+    OWNER_NAME = 'borrower'
     queryset = Debt.objects.all()
     serializer_class = DebtSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
-
-    def list(self, request, *args, **kwargs):
-        debts = self.get_queryset()
-
-        if not request.user.is_superuser and not request.user.is_staff:
-            debts = debts.filter(borrower=request.user)
-
-        page = self.paginate_queryset(debts)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(debts, many=True)
-        return Response(serializer.data)
 
     @action(detail=False)
     def i_owe(self, request):
