@@ -3,9 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
 
+from finance.exceptions import TransferError
 from finance.permissions import IsSelf
 from users.models import User
-from users.serializers import ShallowUserSerializer, UserSerializer, PasswordSerializer, BalanceSerializer
+from users.serializers import ShallowUserSerializer, UserSerializer, PasswordSerializer
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
@@ -59,18 +60,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
             permission_classes=[IsSelf])
     def replenish(self, request, pk=None, **kwargs):
         user = self.get_object()
-        serializer = BalanceSerializer(
-            instance=user.balance,
-            data={
-                "owner": user.id,
-                "balance": user.balance.balance + request.data['amount']
-            }
-        )
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            user.replenish(request.data['amount'])
             return Response({'status': 'balance updated'})
-        else:
-            return Response(serializer.errors,
+        except Exception as e:
+            return Response(str(e),
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'],
@@ -78,18 +72,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
             permission_classes=[IsSelf])
     def withdraw(self, request, pk=None, **kwargs):
         user = self.get_object()
-        serializer = BalanceSerializer(
-            instance=user.balance,
-            data={
-                "owner": user.id,
-                "balance": user.balance.balance - request.data['amount']
-            }
-        )
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            user.withdraw(request.data['amount'])
             return Response({'status': 'balance updated'})
-        else:
-            return Response(serializer.errors,
+        except TransferError as e:
+            return Response(str(e),
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'], detail=False, permission_classes=[])

@@ -9,3 +9,5 @@ def get_days_from_to_date(date_from, date_to=timezone.now()):
 
 def get_admin():
     return User.objects.get(username=settings.SYSTEM_USERNAME)
+
+

@@ -16,12 +16,23 @@ class OfferSerializer(serializers.ModelSerializer):
             'is_with_capitalization',
             'grace_period',
             'return_period',
+            'used_funds'
         )
 
     def validate_credit_fund(self, value):
         user = User.objects.get(pk=self.initial_data['creditor'])
         if value > user.balance.balance:
-            raise serializers.ValidationError("Can't make credit fund bigger than user's balance")
+            raise serializers.ValidationError("Can't make credit fund bigger than user's balance.")
+        return value
+
+    def validate_min_loan_size(self, value):
+        if value > self.initial_data['credit_fund']:
+            raise serializers.ValidationError("Can't make min loan size bigger than credit fund.")
+        return value
+
+    def validate_max_loan_size(self, value):
+        if value > self.initial_data['credit_fund']:
+            raise serializers.ValidationError("Can't make max loan size bigger than credit fund.")
         return value
 
 
@@ -34,7 +45,13 @@ class IssueSerializer(serializers.ModelSerializer):
             'amount',
             'max_overpay',
             'min_credit_period',
+            'fulfilled'
         )
+
+    def validate_max_overpay(self, value):
+        if value < self.initial_data['amount']:
+            raise serializers.ValidationError("Overpay can't be smaller than initial credit amount.")
+        return value
 
 
 class DebtSerializer(serializers.ModelSerializer):

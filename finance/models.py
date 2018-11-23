@@ -29,8 +29,13 @@ class AbstractLoan(models.Model):
 class Offer(AbstractLoan):
     creditor = models.ForeignKey(User, related_name='offers', on_delete=models.CASCADE)
     credit_fund = models.DecimalField(decimal_places=2, max_digits=10)
+    used_funds = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     min_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
     max_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+
+    @property
+    def dried(self):
+        return self.credit_fund - self.used_funds < self.min_loan_size
 
     def overpay_for(self, loan_size):
         percent_days = self.return_period - self.grace_period
@@ -41,6 +46,7 @@ class Offer(AbstractLoan):
 
     def get_issues(self):
         possible_issues = Issue.objects.filter(
+            fulfilled=False,
             amount__lte=self.max_loan_size,
             amount__gte=self.min_loan_size,
             min_credit_period__lte=self.return_period
@@ -55,6 +61,11 @@ class Offer(AbstractLoan):
                 to_id=self.id
             ).exists()
         ]
+
+    def freeze_funds(self, amount):
+        used_funds = self.used_funds - amoun
+        self.used_funds = used_funds
+        self.save()
 
     def to_json(self):
         return {
@@ -73,6 +84,7 @@ class Issue(models.Model):
     amount = models.DecimalField(decimal_places=2, max_digits=10)
     max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
     min_credit_period = models.IntegerField()
+    fulfilled = models.BooleanField(default=False)
 
     def get_offers(self):
         possible_offers = Offer.objects.filter(
@@ -84,6 +96,7 @@ class Issue(models.Model):
             offer
             for offer in possible_offers
             if offer.overpay_for(self.amount) <= self.max_overpay
+            and not offer.dried
             and not Match.objects.filter(
                 match_type=Match.ISSUE,
                 from_id=self.id,
@@ -159,8 +172,10 @@ class Debt(AbstractLoan):
             grace_period=offer.grace_period,
             return_period=offer.return_period
         )
+        offer.freeze_funds(issue.amount)
         debt.issue_funds()
-        issue.delete()
+        issue.fulfilled = True
+        issue.save()
         return debt
 
     def transfer_funds(self, sender, receiver, amount):
@@ -182,7 +197,7 @@ class Debt(AbstractLoan):
         )
 
     def repay_funds(self):
-        amount_for_creditor, amount_for_us = self.split_amount()
+        amount_for_creditor, amount_for_us = self.split_profit()
         admin = get_admin()
         with transaction.atomic():
             self.transfer_funds(
