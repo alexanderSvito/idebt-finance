@@ -1,11 +1,35 @@
+from enum import Enum
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django_cryptography.fields import encrypt
+
+from finance.exceptions import TransferError
+
+
+class DebitCards(Enum):
+    visa = 'visa'
+    master_card = 'mast'
+    maestro = 'maes'
+
+    @classmethod
+    def get_choices(cls):
+        return tuple((i.name, i.value) for i in cls)
 
 
 class Balance(models.Model):
-    balance = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    balance = encrypt(models.DecimalField(decimal_places=2, max_digits=10, default=0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class CreditCard(models.Model):
+    connected_balance = models.ForeignKey(Balance, related_name='cards', on_delete=models.CASCADE)
+    card_type = encrypt(models.CharField(max_length=4, choices=DebitCards.get_choices()))
+    number = encrypt(models.CharField(max_length=16))
+    cvc_code = encrypt(models.CharField(max_length=3))
+    expiration_date = encrypt(models.CharField(max_length=3))
+    owner = encrypt(models.CharField(max_length=128))
 
 
 class User(AbstractUser):
@@ -20,6 +44,24 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150)
     email = models.EmailField()
     passport_number = models.CharField(max_length=128)
+
+    def save(self, *args, **kwargs):
+        if not hasattr(self, 'balance') or self.balance is None:
+            balance = Balance.objects.create(owner=self)
+            self.balance = balance
+
+        super(User, self).save(*args, **kwargs)
+
+    def withdraw(self, amount):
+        if amount > self.balance.balance:
+            raise TransferError("Insufficient funds")
+
+        self.balance.balance -= amount
+        self.balance.save()
+
+    def replenish(self, amount):
+        self.balance.balance += amount
+        self.balance.save()
 
     def to_json(self):
         return {

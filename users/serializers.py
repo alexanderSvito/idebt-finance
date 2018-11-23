@@ -29,13 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_locked",
         )
 
-    def create(self, validated_data):
-        user = User(**validated_data)
-        balance = Balance.objects.create(owner=user)
-        user.balance = balance
-        user.save()
-        return user
-
 
 class ShallowUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,13 +54,3 @@ class PasswordSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         instance['password'] = make_password(validated_data['password'])
-
-
-class BalanceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Balance
-        fields = (
-            "id",
-            "balance",
-            "owner",
-        )
