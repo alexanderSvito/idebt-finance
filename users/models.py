@@ -18,7 +18,7 @@ class DebitCards(Enum):
 
 
 class Balance(models.Model):
-    balance = encrypt(models.DecimalField(decimal_places=2, max_digits=10, default=0))
+    balance = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
