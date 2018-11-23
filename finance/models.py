@@ -63,7 +63,7 @@ class Offer(AbstractLoan):
         ]
 
     def freeze_funds(self, amount):
-        used_funds = self.used_funds - amoun
+        used_funds = self.used_funds - amount
         self.used_funds = used_funds
         self.save()
 
@@ -176,6 +176,8 @@ class Debt(AbstractLoan):
         debt.issue_funds()
         issue.fulfilled = True
         issue.save()
+        issue.borrower.save()
+        offer.creditor.save()
         return debt
 
     def transfer_funds(self, sender, receiver, amount):
@@ -185,6 +187,9 @@ class Debt(AbstractLoan):
                 receiver.balance.balance += amount
                 sender.balance.save()
                 receiver.balance.save()
+                sender.save()
+                receiver.save()
+                self.save()
         except DatabaseError as e:
             raise TransferError("Can't transfer funds") from e
 
