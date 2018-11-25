@@ -13,7 +13,7 @@ class BalanceSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    balance = serializers.DecimalField(source='balance.balance', decimal_places=2, max_digits=30)
+    balance = serializers.DecimalField(source='balance.balance', decimal_places=2, max_digits=30, required=False)
 
     class Meta:
         model = User
@@ -44,6 +44,13 @@ class UserSerializer(serializers.ModelSerializer):
             balance.is_valid(raise_exception=True)
             balance = balance.save()
             validated_data['balance'] = balance
+
+        else:
+            if 'id' not in validated_data:
+                balance = BalanceSerializer(data={'balance': 0})
+                balance.is_valid(raise_exception=True)
+                balance = balance.save()
+                validated_data['balance'] = balance
 
         user = super(UserSerializer, self).create(validated_data)
 
