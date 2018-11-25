@@ -29,6 +29,18 @@ class UserSerializer(serializers.ModelSerializer):
             "is_locked",
         )
 
+    def create(self, validated_data):
+        if 'balance' in validated_data:
+            del validated_data['balance']
+            user = super(UserSerializer, self).create(validated_data)
+            balance = Balance.objects.create(owner=user)
+            user.balance = balance
+            user.save()
+        else:
+            user = super(UserSerializer, self).create(validated_data)
+
+        return user
+
 
 class ShallowUserSerializer(serializers.ModelSerializer):
     class Meta:

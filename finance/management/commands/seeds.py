@@ -20,7 +20,7 @@ class Command(BaseCommand):
     def populate_users(self, num):
         for i in range(num):
             serializer = UserSerializer(data=create_user())
-            if serializer.is_valid():
+            if serializer.is_valid(True):
                 user = serializer.save()
                 user.balance.balance = get_balance(user.rating)
                 user.balance.save()
@@ -28,6 +28,8 @@ class Command(BaseCommand):
                     user.first_name,
                     user.last_name
                 ))
+            else:
+                self.stderr.write(str(serializer.errors))
 
     def populate_offers_and_issues(self):
         for user in User.objects.all():
@@ -63,7 +65,7 @@ class Command(BaseCommand):
                         "from_id": offer.id,
                         "to_id": issue.id
                     })
-                    if serializer.is_valid():
+                    if serializer.is_valid(True):
                         match, matched = serializer.save()
                         if matched:
                             self.stdout.write("Debt created")
@@ -80,7 +82,7 @@ class Command(BaseCommand):
                         "from_id": issue.id,
                         "to_id": offer.id
                     })
-                    if serializer.is_valid():
+                    if serializer.is_valid(True):
                         match, matched = serializer.save()
                         if matched:
                             self.stdout.write("Debt created")

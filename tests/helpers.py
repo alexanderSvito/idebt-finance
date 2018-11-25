@@ -84,9 +84,13 @@ def get_is_creditor():
 def get_passport_number():
     possible_letters = string.ascii_uppercase + string.digits
     return "{}-{}".format(
-        random.sample(possible_letters, 10),
-        random.sample(possible_letters, 10)
+        "".join(random.sample(possible_letters, 10)),
+        "".join(random.sample(possible_letters, 10))
     )
+
+
+def get_password():
+    return "".join(random.sample(string.printable * 3, random.randint(8, 15)))
 
 
 def create_user():
@@ -100,6 +104,8 @@ def create_user():
         'last_name': last_name,
         'email': get_email(username),
         'rating': rating,
+        'password': get_password(),
+        'balance': get_balance(rating),
         'emp_title': get_employment_title(rating),
         'annual_income': get_annual_income(rating),
         'is_creditor': get_is_creditor(),

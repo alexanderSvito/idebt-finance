@@ -33,7 +33,7 @@ class CreditCard(models.Model):
 
 
 class User(AbstractUser):
-    balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE)
+    balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE, null=True)
     rating = models.DecimalField(decimal_places=2, max_digits=10, default=50)
     emp_title = models.CharField(max_length=256)
     annual_income = models.DecimalField(decimal_places=2, max_digits=10)
@@ -44,13 +44,6 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150)
     email = models.EmailField()
     passport_number = models.CharField(max_length=128)
-
-    def save(self, *args, **kwargs):
-        if not hasattr(self, 'balance') or self.balance is None:
-            balance = Balance.objects.create(owner=self)
-            self.balance = balance
-
-        super(User, self).save(*args, **kwargs)
 
     def withdraw(self, amount):
         if amount > self.balance.balance:
