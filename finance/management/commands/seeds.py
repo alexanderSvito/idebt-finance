@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from finance.serializers import MatchSerializer
 from tests.helpers import create_issue, create_offer, get_balance, create_user
 from users.serializers import UserSerializer
-
+from tests.helpers import get_password
 
 class Command(BaseCommand):
     help = 'Populates the database with seed data'
@@ -24,6 +24,8 @@ class Command(BaseCommand):
                 user = serializer.save()
                 user.balance.balance = get_balance(user.rating)
                 user.balance.save()
+                user.set_password(get_password('test'))
+                user.save
                 self.stdout.write("User {} {} created".format(
                     user.first_name,
                     user.last_name
@@ -105,4 +107,3 @@ class Command(BaseCommand):
 
         if options['debts']:
             self.populate_debts()
-
