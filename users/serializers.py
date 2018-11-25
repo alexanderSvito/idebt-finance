@@ -1,4 +1,3 @@
-from django.db import transaction
 from rest_framework import serializers
 from rest_framework_jwt.compat import PasswordField
 
@@ -64,6 +63,7 @@ class ShallowUserSerializer(serializers.ModelSerializer):
             "emp_title",
             "is_creditor",
             "is_locked",
+            "complete"
         )
 
 

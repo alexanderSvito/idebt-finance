@@ -34,16 +34,34 @@ class CreditCard(models.Model):
 
 class User(AbstractUser):
     balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE, null=True)
-    rating = models.DecimalField(decimal_places=2, max_digits=10, default=50)
-    emp_title = models.CharField(max_length=256)
-    annual_income = models.DecimalField(decimal_places=2, max_digits=10)
+    rating = models.DecimalField(decimal_places=2, max_digits=10, default=0, blank=True)
+    emp_title = models.CharField(max_length=256, blank=True)
+    annual_income = models.DecimalField(decimal_places=2, max_digits=10, blank=True)
     is_creditor = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
-    telephone = models.CharField(max_length=32)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=150)
+    telephone = models.CharField(max_length=32, blank=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
     email = models.EmailField()
-    passport_number = models.CharField(max_length=128)
+    passport_number = models.CharField(max_length=128, blank=True)
+
+    OPTIONAL_FIELDS = (
+        'rating',
+        'emp_title',
+        'annual_income',
+        'telephone',
+        'first_name',
+        'last_name',
+        'passport_number',
+    )
+
+    @property
+    def complete(self):
+        for field in self.OPTIONAL_FIELDS:
+            value = getattr(self, field)
+            if value != False and not bool(value):
+                return False
+        return True
 
     def withdraw(self, amount):
         if amount > self.balance.balance:
