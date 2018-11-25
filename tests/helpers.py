@@ -89,8 +89,11 @@ def get_passport_number():
     )
 
 
-def get_password():
-    return "".join(random.sample(string.printable * 3, random.randint(8, 15)))
+def get_password(value=None):
+    if value:
+        return value
+    else:
+        return "".join(random.sample(string.printable * 3, random.randint(8, 15)))
 
 
 def create_user():
@@ -142,4 +145,3 @@ def create_issue(user):
         'max_overpay': max_overpay,
         'min_credit_period': min_credit_period
     }
-
