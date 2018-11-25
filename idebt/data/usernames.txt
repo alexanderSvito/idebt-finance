@@ -30,12 +30,12 @@ alwaysaugst
 ambienttech
 ambiguousmarzipan
 american
-american_bad@$$
+american_badass
 anatol
 andre2012
 andreev
 andrey
-angel's_haven
+angels_haven
 angel_charms
 angel_ribbons
 angelfromabove
@@ -142,7 +142,7 @@ boy_vs_girl
 brain1986
 brain_dead
 brainedsend
-brains&beauty
+brains_and_beauty
 brand1985
 brandywine
 bravais
@@ -275,7 +275,7 @@ design
 destiny
 devastatedmoney
 deviantart
-devil's_own
+devils_own
 devilish
 diamante
 dickhead
@@ -461,7 +461,7 @@ humiliatedsaute
 hummoney
 hygieaharmonic
 iamjustsendingthisleter
-iamstupid..not
+iamstupid.not
 ice_geek
 idontknow
 ignoramus
@@ -508,7 +508,7 @@ kadry1989
 kagical
 kalman
 keywords
-ki$$ntell
+kissntell
 kickball
 kikimoney
 kindlyshastic
@@ -614,7 +614,7 @@ malestatetags
 mammal
 manager
 manic_depressive
-marge'shair
+margeshair
 margoandme
 marketing
 martingaleacrux
@@ -912,7 +912,6 @@ sherrydiopside
 shofting
 shopaholic
 short_circuit
-show$topper
 showstopper
 shundery
 shushloan

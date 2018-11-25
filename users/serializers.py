@@ -7,6 +7,12 @@ from users.models import User, Balance
 from django.contrib.auth.hashers import make_password
 
 
+class BalanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Balance
+        fields = ('balance', )
+
+
 class UserSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(source='balance.balance', decimal_places=2, max_digits=30)
 
@@ -31,13 +37,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if 'balance' in validated_data:
-            del validated_data['balance']
-            user = super(UserSerializer, self).create(validated_data)
-            balance = Balance.objects.create(owner=user)
-            user.balance = balance
-            user.save()
-        else:
-            user = super(UserSerializer, self).create(validated_data)
+            if 'id' in validated_data:
+                instance = Balance.objects.get(owner_id=validated_data['id']['id'])
+            else:
+                instance = None
+            balance = BalanceSerializer(instance=instance, data={'balance': validated_data['balance']['balance']})
+            balance.is_valid(raise_exception=True)
+            balance = balance.save()
+            validated_data['balance'] = balance
+
+        user = super(UserSerializer, self).create(validated_data)
 
         return user
 

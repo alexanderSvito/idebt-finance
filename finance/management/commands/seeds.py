@@ -20,7 +20,7 @@ class Command(BaseCommand):
     def populate_users(self, num):
         for i in range(num):
             serializer = UserSerializer(data=create_user())
-            if serializer.is_valid(True):
+            if serializer.is_valid():
                 user = serializer.save()
                 user.balance.balance = get_balance(user.rating)
                 user.balance.save()
@@ -29,7 +29,7 @@ class Command(BaseCommand):
                     user.last_name
                 ))
             else:
-                self.stderr.write(str(serializer.errors))
+                self.stderr.write(str(serializer.errors) + str(serializer.initial_data))
 
     def populate_offers_and_issues(self):
         for user in User.objects.all():
