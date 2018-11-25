@@ -33,17 +33,17 @@ class CreditCard(models.Model):
 
 
 class User(AbstractUser):
-    balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE, null=True)
-    rating = models.DecimalField(decimal_places=2, max_digits=10, default=0, blank=True)
-    emp_title = models.CharField(max_length=256, blank=True)
-    annual_income = models.DecimalField(decimal_places=2, max_digits=10, blank=True)
+    balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE, null=True, blank=True)
+    rating = models.DecimalField(decimal_places=2, max_digits=10, default=0, null=True, blank=True)
+    emp_title = models.CharField(max_length=256, null=True, blank=True)
+    annual_income = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     is_creditor = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
-    telephone = models.CharField(max_length=32, blank=True)
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=150, blank=True)
+    telephone = models.CharField(max_length=32, null=True, blank=True)
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=150, null=True, blank=True)
     email = models.EmailField()
-    passport_number = models.CharField(max_length=128, blank=True)
+    passport_number = models.CharField(max_length=128, null=True, blank=True)
 
     OPTIONAL_FIELDS = (
         'rating',
