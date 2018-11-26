@@ -8,6 +8,7 @@ from finance.permissions import IsSelf
 from users.models import User
 from users.serializers import ShallowUserSerializer, UserSerializer, PasswordSerializer
 
+from rest_framework_jwt.settings import api_settings
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
     queryset = User.objects.all()
@@ -89,7 +90,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
                 password = password.save()
                 user.password = password
                 user.save()
-                shallow = ShallowUserSerializer(serializer.data)
-                return Response(shallow.data, status=status.HTTP_201_CREATED)
+                payload = api_settings.JWT_PAYLOAD_HANDLER(user)
+                return Response(api_settings.JWT_ENCODE_HANDLER(payload), status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
