@@ -26,12 +26,58 @@ class AbstractLoan(models.Model):
         abstract = True
 
 
+class Issue(models.Model):
+    borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
+    amount = models.DecimalField(decimal_places=2, max_digits=10)
+    max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
+    min_credit_period = models.IntegerField()
+    fulfilled = models.BooleanField(default=False)
+
+    @property
+    def ready_for_auction(self):
+        return len(self.buyers) >= settings.MIN_BUYERS_TRESHOLD
+
+    def worth_function(self, offer):
+        """ TODO: Better worth calculations """
+        return offer.overpay_for(self.min_credit_period + 3)
+
+    def run_auction(self):
+        rank = sorted(self.buyers, key=self.worth_function)
+        return rank[1]
+
+    def get_offers(self):
+        possible_offers = Offer.objects.filter(
+            min_loan_size__lte=self.amount,
+            max_loan_size__gte=self.amount,
+            return_period__gte=self.min_credit_period
+        )
+        return [
+            offer
+            for offer in possible_offers
+            if offer.overpay_for(self.amount) <= self.max_overpay
+            and not offer.dried
+            and not Match.objects.filter(
+                match_type=Match.ISSUE,
+                from_id=self.id,
+                to_id=offer.id
+            ).exists()
+        ]
+
+    def to_json(self):
+        return {
+            'desired_size': self.amount,
+            'max_overpay': self.max_overpay,
+            'min_credit_period': self.min_credit_period
+        }
+
+
 class Offer(AbstractLoan):
     creditor = models.ForeignKey(User, related_name='offers', on_delete=models.CASCADE)
     credit_fund = models.DecimalField(decimal_places=2, max_digits=10)
     used_funds = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     min_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
     max_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+    lots = models.ManyToManyField(Issue, related_name='buyers', on_delete=models.CASCADE)
 
     @property
     def dried(self):
@@ -76,39 +122,6 @@ class Offer(AbstractLoan):
             'is_with_capitalization': self.is_with_capitalization,
             'grace_period': self.grace_period,
             'return_period': self.return_period,
-        }
-
-
-class Issue(models.Model):
-    borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
-    amount = models.DecimalField(decimal_places=2, max_digits=10)
-    max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
-    min_credit_period = models.IntegerField()
-    fulfilled = models.BooleanField(default=False)
-
-    def get_offers(self):
-        possible_offers = Offer.objects.filter(
-            min_loan_size__lte=self.amount,
-            max_loan_size__gte=self.amount,
-            return_period__gte=self.min_credit_period
-        )
-        return [
-            offer
-            for offer in possible_offers
-            if offer.overpay_for(self.amount) <= self.max_overpay
-            and not offer.dried
-            and not Match.objects.filter(
-                match_type=Match.ISSUE,
-                from_id=self.id,
-                to_id=offer.id
-            ).exists()
-        ]
-
-    def to_json(self):
-        return {
-            'desired_size': self.amount,
-            'max_overpay': self.max_overpay,
-            'min_credit_period': self.min_credit_period
         }
 
 

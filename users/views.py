@@ -10,6 +10,12 @@ from users.serializers import ShallowUserSerializer, UserSerializer, PasswordSer
 
 from rest_framework_jwt.settings import api_settings
 
+
+BLACKLIST_FIELDS = {
+    "password",
+}
+
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -91,6 +97,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
                 user.password = password
                 user.save()
                 payload = api_settings.JWT_PAYLOAD_HANDLER(user)
-                return Response(api_settings.JWT_ENCODE_HANDLER(payload), status=status.HTTP_201_CREATED)
+                response_data = {
+                    "user": {k: v for k, v in serializer.data.items() if k not in BLACKLIST_FIELDS},
+                    "token": api_settings.JWT_ENCODE_HANDLER(payload)
+                }
+                return Response(response_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

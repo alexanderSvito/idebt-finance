@@ -157,3 +157,6 @@ JWT_AUTH = {
 
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
+
+
+MIN_BUYERS_TRESHOLD = 5
