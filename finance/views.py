@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 
 from finance.exceptions import TransferError
-from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner, IsSelf, IsBorrower
+from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner, IsBorrower
 from finance.serializers import OfferSerializer, IssueSerializer, MatchSerializer, DebtSerializer
 
 from finance.models import Offer, Issue, Match, Debt
@@ -156,4 +156,3 @@ class MatchViewSet(viewsets.GenericViewSet):
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-

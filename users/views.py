@@ -80,7 +80,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
             return Response(str(e),
                             status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=['post'], detail=False, permission_classes=[])
+    @action(methods=['post'], detail=False, permission_classes=[permissions.AllowAny])
     def signup(self, request, **kwargs):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
