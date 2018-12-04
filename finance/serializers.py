@@ -94,7 +94,15 @@ class MatchSerializer(serializers.ModelSerializer):
             offer_id = match.to_id
             issue_id = match.from_id
         if Match.is_matched(offer_id, issue_id):
-            Debt.create_from(offer_id, issue_id)
-            return match, True
+            issue = Issue.objects.get(pk=issue_id)
+            offer = Offer.objects.get(pk=offer_id)
+            issue.buyers.add(offer)
+            issue.save()
+            if issue.ready_for_auction:
+                winner = issue.run_auction()
+                Debt.create_from(winner.id, issue_id)
+                return match, True
+            else:
+                return match, False
         else:
             return match, False
