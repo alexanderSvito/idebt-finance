@@ -29,3 +29,5 @@ six==1.11.0
 typed-ast==1.1.0
 typing==3.6.6
 wrapt==1.10.11
+django-cors-headers==2.4.0
+django-dotenv==1.4.2
