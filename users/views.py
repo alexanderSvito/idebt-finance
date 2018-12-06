@@ -21,6 +21,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def _get_shallow_user_info(self, user):
+        return {
+            k: v
+            for k, v in user.data.items()
+            if k not in BLACKLIST_FIELDS
+        }
+
     def list(self, request, **kwargs):
         users = self.get_queryset()
 
@@ -48,7 +55,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
         user = request.user
         user.password = '<hidden>'
         serializer = self.get_serializer(instance=user)
-        return Response(serializer.data)
+        return Response(self._get_shallow_user_info(serializer))
 
     @action(methods=['post'], detail=True, permission_classes=[IsSelf])
     def set_password(self, request, pk=None, **kwargs):
@@ -98,7 +105,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
                 user.save()
                 payload = api_settings.JWT_PAYLOAD_HANDLER(user)
                 response_data = {
-                    "user": {k: v for k, v in serializer.data.items() if k not in BLACKLIST_FIELDS},
+                    "user": self._get_shallow_user_info(serializer),
                     "token": api_settings.JWT_ENCODE_HANDLER(payload)
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)

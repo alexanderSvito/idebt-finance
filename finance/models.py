@@ -1,9 +1,11 @@
 from enum import Enum
+from decimal import Decimal
 
 from django.db import models, DatabaseError, transaction
 from django.conf import settings
+from django.utils import timezone
 
-from finance.exceptions import TransferError
+from finance.exceptions import TransferError, CloseError
 from idebt.helpers import get_days_from_to_date, get_admin
 from users.models import User
 
@@ -28,25 +30,43 @@ class AbstractLoan(models.Model):
 
 class Issue(models.Model):
     borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
     amount = models.DecimalField(decimal_places=2, max_digits=10)
     max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
     min_credit_period = models.IntegerField()
     fulfilled = models.BooleanField(default=False)
+    is_closed = models.BooleanField(default=False)
 
     @property
-    def ready_for_auction(self):
-        return len(self.buyers) >= settings.MIN_BUYERS_TRESHOLD
+    def has_enough_buyers(self):
+        return len(self.buyers.all()) >= settings.MIN_BUYERS_TRESHOLD
+
+    @property
+    def has_enough_time_elapsed(self):
+        return (timezone.now() - self.created_at).seconds >= settings.MIN_HOURS_TRESHOLD * 60 * 60
+
+    @property
+    def is_ready_for_auction(self):
+        return self.has_enough_buyers or self.has_enough_time_elapsed
 
     def worth_function(self, offer):
         """ TODO: Better worth calculations """
         return offer.overpay_for(self.min_credit_period + 3)
 
     def run_auction(self):
-        rank = sorted(self.buyers, key=self.worth_function)
+        rank = sorted(self.buyers.all(), key=self.worth_function)
         return rank[1]
+
+    def close(self):
+        if not self.fulfilled:
+            self.is_closed = True
+            self.save()
+        else:
+            raise CloseError("Can't close fulfilled issue.")
 
     def get_offers(self):
         possible_offers = Offer.objects.filter(
+            is_closed=False,
             min_loan_size__lte=self.amount,
             max_loan_size__gte=self.amount,
             return_period__gte=self.min_credit_period
@@ -77,7 +97,8 @@ class Offer(AbstractLoan):
     used_funds = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     min_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
     max_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
-    lots = models.ManyToManyField(Issue, related_name='buyers', on_delete=models.CASCADE)
+    lots = models.ManyToManyField(Issue, related_name='buyers')
+    is_closed = models.BooleanField(default=False)
 
     @property
     def dried(self):
@@ -93,6 +114,7 @@ class Offer(AbstractLoan):
     def get_issues(self):
         possible_issues = Issue.objects.filter(
             fulfilled=False,
+            is_closed=False,
             amount__lte=self.max_loan_size,
             amount__gte=self.min_loan_size,
             min_credit_period__lte=self.return_period
@@ -112,6 +134,13 @@ class Offer(AbstractLoan):
         used_funds = self.used_funds - amount
         self.used_funds = used_funds
         self.save()
+
+    def close(self):
+        if not self.dried:
+            self.is_closed = True
+            self.save()
+        else:
+            raise CloseError("Can't close dried offer.")
 
     def to_json(self):
         return {
@@ -228,11 +257,13 @@ class Debt(AbstractLoan):
                 admin,
                 amount_for_us
             )
+            self.is_closed = True
+            self.save()
 
     def split_profit(self):
         profit = self.current_size - self.loan_size
-        our_profit = profit * settings.SHARE_PERCENTAGE
-        creditor_profit = profit * (1 - settings.SHARE_PERCENTAGE)
+        our_profit = profit * Decimal(settings.SHARE_PERCENTAGE)
+        creditor_profit = profit * (1 - Decimal(settings.SHARE_PERCENTAGE))
         return self.loan_size + creditor_profit, our_profit
 
     def to_json(self):
