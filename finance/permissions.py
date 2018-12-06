@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from finance.models import Issue, Offer, Match
+
 
 class IsAdminOrPostOnly(permissions.BasePermission):
     """
@@ -21,7 +23,31 @@ class IsCreditor(permissions.BasePermission):
 
 class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return request.user == obj.borrower or request.user == obj.creditor
+        if isinstance(obj, Issue):
+            return request.user == obj.borrower
+        elif isinstance(obj, Offer):
+            return request.user == obj.creditor
+        else:
+            return False
+
+
+class IsMatchable(permissions.BasePermission):
+    def has_permission(self, request, view):
+        data = request.data
+        if data['match_type'] == 'ISS':
+            try:
+                issue = Issue.objects.get(pk=data['from_id'])
+                return issue.borrower == request.user
+            except Issue.DoesNotExist:
+                return False
+        elif data['match_type'] == 'OFF':
+            try:
+                offer = Offer.objects.get(pk=data['from_id'])
+                return offer.creditor == request.user
+            except Issue.DoesNotExist:
+                return False
+        else:
+            return False
 
 
 class IsSelf(permissions.BasePermission):

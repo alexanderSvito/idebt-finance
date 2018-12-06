@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 
-from finance.exceptions import TransferError
-from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner, IsSelf, IsBorrower
+from finance.exceptions import TransferError, CloseError
+from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner, IsSelf, IsBorrower, IsMatchable
 from finance.serializers import OfferSerializer, IssueSerializer, MatchSerializer, DebtSerializer
 
 from finance.models import Offer, Issue, Match, Debt
@@ -27,8 +27,19 @@ class ListMixin(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class CreateMixin(viewsets.ReadOnlyModelViewSet):
+class CreateCloseMixin(viewsets.ReadOnlyModelViewSet):
     OWNER_NAME = None
+
+    @action(methods=['post'], detail=True)
+    def close(self, request, pk=None):
+        obj = self.get_object()
+        try:
+            obj.close()
+            return Response({"status": "ok"})
+        except CloseError as e:
+            return Response({
+                "message": str(e)
+            }, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     def create(self, request, *args, **kwargs):
         data = dict(request.data)
@@ -49,12 +60,12 @@ class CreateMixin(viewsets.ReadOnlyModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class OffersViewSet(ListMixin, CreateMixin):
+class OffersViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'creditor'
 
     queryset = Offer.objects.all()
     serializer_class = OfferSerializer
-    permission_classes = (permissions.IsAuthenticated, IsCreditor)
+    permission_classes = (permissions.IsAuthenticated, IsCreditor, IsOwner)
 
     @action(detail=True)
     def suitable(self, request, pk=None):
@@ -70,7 +81,7 @@ class OffersViewSet(ListMixin, CreateMixin):
         return Response(serializer.data)
 
 
-class IssueViewSet(ListMixin, CreateMixin):
+class IssueViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'borrower'
 
     queryset = Issue.objects.all()
@@ -99,7 +110,7 @@ class DebtViewSet(ListMixin):
 
     @action(detail=False)
     def i_owe(self, request):
-        debts = Debt.objects.filter(borrower=request.user)
+        debts = Debt.objects.filter(borrower=request.user, is_closed=False)
 
         page = self.paginate_queryset(debts)
         if page is not None:
@@ -111,7 +122,7 @@ class DebtViewSet(ListMixin):
 
     @action(detail=False)
     def owe_me(self, request):
-        debts = Debt.objects.filter(creditor=request.user)
+        debts = Debt.objects.filter(creditor=request.user, is_closed=False)
 
         page = self.paginate_queryset(debts)
         if page is not None:
@@ -143,7 +154,11 @@ class DebtViewSet(ListMixin):
 class MatchViewSet(viewsets.GenericViewSet):
     queryset = Match.objects.all()
     serializer_class = MatchSerializer
-    permission_classes = (permissions.IsAuthenticated, IsAdminOrPostOnly)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrPostOnly,
+        IsMatchable
+    )
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)

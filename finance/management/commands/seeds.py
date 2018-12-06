@@ -8,6 +8,7 @@ from tests.helpers import create_issue, create_offer, get_balance, create_user
 from users.serializers import UserSerializer
 from tests.helpers import get_password
 
+
 class Command(BaseCommand):
     help = 'Populates the database with seed data'
 
