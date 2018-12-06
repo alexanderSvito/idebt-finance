@@ -21,6 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&x_pjy+z+4y54q))+e_w64!uobi-r$kkx=g)o0cmvbjgwc#^$+'
+SYSTEM_PASSWORD = '314159516'
 
 SYSTEM_USERNAME = 'system'
 SHARE_PERCENTAGE = 0.01
@@ -166,5 +167,7 @@ JWT_AUTH = {
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
 
+# Auction setting
 
 MIN_BUYERS_TRESHOLD = 5
+MIN_HOURS_TRESHOLD = 1
