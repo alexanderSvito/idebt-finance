@@ -16,8 +16,15 @@ class OfferSerializer(serializers.ModelSerializer):
             'is_with_capitalization',
             'grace_period',
             'return_period',
-            'used_funds'
+            'used_funds',
+            'is_closed'
         )
+
+    def validate_creditor(self, value):
+        user = User.objects.get(pk=self.initial_data['creditor'])
+        if not user.is_creditor:
+            raise serializers.ValidationError("Can't create a credit plan if user is not a creditor.")
+        return value
 
     def validate_credit_fund(self, value):
         user = User.objects.get(pk=self.initial_data['creditor'])
@@ -98,7 +105,7 @@ class MatchSerializer(serializers.ModelSerializer):
             offer = Offer.objects.get(pk=offer_id)
             issue.buyers.add(offer)
             issue.save()
-            if issue.ready_for_auction:
+            if issue.is_ready_for_auction:
                 winner = issue.run_auction()
                 Debt.create_from(winner.id, issue_id)
                 return match, True
