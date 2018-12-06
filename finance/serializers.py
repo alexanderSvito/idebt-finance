@@ -33,12 +33,12 @@ class OfferSerializer(serializers.ModelSerializer):
         return value
 
     def validate_min_loan_size(self, value):
-        if value > self.initial_data['credit_fund']:
+        if value > int(self.initial_data['credit_fund']):
             raise serializers.ValidationError("Can't make min loan size bigger than credit fund.")
         return value
 
     def validate_max_loan_size(self, value):
-        if value > self.initial_data['credit_fund']:
+        if value > int(self.initial_data['credit_fund']):
             raise serializers.ValidationError("Can't make max loan size bigger than credit fund.")
         return value
 
@@ -56,7 +56,7 @@ class IssueSerializer(serializers.ModelSerializer):
         )
 
     def validate_max_overpay(self, value):
-        if value < self.initial_data['amount']:
+        if value < int(self.initial_data['amount']):
             raise serializers.ValidationError("Overpay can't be smaller than initial credit amount.")
         return value
 
