@@ -132,7 +132,7 @@ class DebtViewSet(ListMixin):
         serializer = self.get_serializer(debts, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, permission_classes=[IsBorrower])
+    @action(detail=True, methods=['post'], permission_classes=[IsBorrower])
     def repay(self, request, pk=None):
         debt = self.get_object()
         if debt.is_repayable:
