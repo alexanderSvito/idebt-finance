@@ -59,7 +59,7 @@ class Issue(models.Model):
             return rank[1]
         elif len(rank) == 1:
             return rank[0]
-        return None
+        raise Exception('Ivalid data for auction')
 
     def close(self):
         if not self.fulfilled:
