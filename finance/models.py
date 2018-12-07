@@ -55,7 +55,11 @@ class Issue(models.Model):
 
     def run_auction(self):
         rank = sorted(self.buyers.all(), key=self.worth_function)
-        return rank[1]
+        if len(rank) > 1:
+            return rank[1]
+        elif len(rank) == 1:
+            return rank[0]
+        raise Exception('Ivalid data for auction')
 
     def close(self):
         if not self.fulfilled:

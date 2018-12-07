@@ -44,11 +44,14 @@ class OfferSerializer(serializers.ModelSerializer):
 
 
 class IssueSerializer(serializers.ModelSerializer):
+    borrower_stats = serializers.SerializerMethodField()
+
     class Meta:
         model = Issue
         fields = (
             'id',
             'borrower',
+            'borrower_stats',
             'amount',
             'max_overpay',
             'min_credit_period',
@@ -59,6 +62,9 @@ class IssueSerializer(serializers.ModelSerializer):
         if value < int(self.initial_data['amount']):
             raise serializers.ValidationError("Overpay can't be smaller than initial credit amount.")
         return value
+
+    def get_borrower_stats(self, obj):
+        return {'rating': obj.borrower.rating}
 
 
 class DebtSerializer(serializers.ModelSerializer):
