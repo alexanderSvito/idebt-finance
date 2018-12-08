@@ -1,0 +1,173 @@
+<html>
+    <head>
+        <meta name="own_hash" content="{{ own_hash }}">
+        <meta name="prev_hash" content="{{ prev_hash }}">
+        <meta name="block_hash" content="{{ block_hash }}">
+        <meta charset="utf-8">
+        <style>
+            .doc {
+                margin: 2em 4em 0 4em;
+                text-indent: 1.5em;
+                font-size: 18px;
+            }
+            .title {
+                font-size: 26px;
+                font-weight: bold;
+                text-align: center;
+            }
+            .intro .row {
+                text-indent: 2em;
+                font-size: 19px;
+            }
+            .date {
+                margin: 3em;
+                text-align: right;
+            }
+            ol {
+                text-indent: 0;
+            }
+            table {
+                margin: 1em;
+                width: 100%;
+            }
+            table thead {
+                font-weight: bolder;
+                font-size: 20px;
+            }
+            .main {
+                margin: 0.5em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="doc">
+            <div class="title">
+                LOAN AGREEMENT # {{ document_id }}
+            </div>
+            <div class="date">
+                THIS LOAN AGREEMENT (this "Agreement") dated this {{ date }}
+            </div>
+            <div class="intro">
+                <div class="row">
+                    {{ creditor_name }}, the «Lender», of the first part
+                </div>
+                <div class="row">
+                    {{ borrower_name }}, the «Borrower», of the second part.
+                </div>
+                <div class="row">
+                    IN CONSIDERATION OF the Lender loaning certain monies (the "Loan") to the Borrower, and the Borrower repaying the Loan to the Lender, both parties agree to keep, perform and fulfill the promises and conditions set out in this Agreement:
+                </div>
+
+            </div>
+            <div class="main">
+                <ol>
+                    <li>
+                        Loan Amount & Interest
+                        <ul>
+                            <li>
+                                The Lender promises to loan ${{ loan_size.0 }}.{{ loan_size.1 }} USD ({{ verb_loan_size.0 }} dollars {{ verb_loan_size.1 }} cents) to the Borrower and the Borrower promises to repay this principal amount to the Lender, without interest payable on the unpaid principal, beginning on {{ date }}</li>
+                        </ul>
+                    </li>
+                    <li>
+                        Payment
+                        <ul>
+                            <li>
+                                This Loan will be repaid in full on {{ last_return_day }}.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Default
+                        <ul>
+                            <li>
+                                Notwithstanding anything to the contrary in this Agreement, if the Borrower defaults in the performance of any obligation under this Agreement, then the Lender may declare the principal amount owing and interest due under this Agreement at that time to be immediately due and payable.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Governing Law
+                        <ul>
+                            <li>
+                                This Agreement will be construed in accordance with and governed by the laws of the any State of the USA.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Costs
+                        <ul>
+                            <li>
+                                All costs, expenses and expenditures including, without limitation, the complete legal costs incurred by enforcing this Agreement as a result of any default by the Borrower, will be added to the principal then outstanding and will immediately be paid by the Borrower.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Binding Effect
+                        <ul>
+                            <li>
+                                This Agreement will pass to the benefit of and be binding upon the respective heirs, executors, administrators, successors and permitted assigns of the Borrower and Lender. The Borrower waives presentment for payment, notice of non-payment, protest, and notice of protest.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Amendments
+                        <ul>
+                            <li>
+                                This Agreement may only be amended or modified by a written instrument executed by both the Borrower and the Lender.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Severability
+                        <ul>
+                            <li>
+                                The clauses and paragraphs contained in this Agreement are intended to be read and construed independently of each other. If any term, covenant, condition or provision of this Agreement is held by a court of competent jurisdiction to be invalid, void or unenforceable, it is the parties' intent that such provision be reduced in scope by the court only to the extent deemed necessary by that court to render the provision reasonable and enforceable and the remainder of the provisions of this Agreement will in no way be affected, impaired or invalidated as a result.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        General Provisions
+                        <ul>
+                            <li>
+                                Headings are inserted for the convenience of the parties only and are not to be considered when interpreting this Agreement. Words in the singular mean and include the plural and vice versa. Words in the masculine mean and include the feminine and vice versa.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        IN WITNESS WHEREOF , the parties have duly affixed their signatures under hand and seal on this {{ date }}.
+                        <div class="table">
+                            <table>
+                                <tr>
+                                    <td style="width: 40%; text-decoration: underline;">
+                                        SIGNED, SEALED, AND DELIVERED on {{ date }}:
+                                    </td>
+                                    <td style="width: 60%; text-align: right;">
+                                        {{ creditor_full_name }}<br>
+                                        {{ creditor_passport }}<br>
+                                        {{ creditor_telephone }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    &nbsp;
+                                </tr>
+                                <tr>
+                                    <td style="width: 40%; text-decoration: underline;">
+                                        SIGNED, SEALED, AND DELIVERED on {{ date }}:
+                                    </td>
+                                    <td style="width: 60%; text-align: right">
+                                        {{ borrower_full_name }}<br>
+                                        {{ borrower_passport }}<br>
+                                        {{ borrower_telephone }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+            <div class="footer">
+                This Agreement constitutes the entire agreement between the parties and there are no further items or provisions, either oral or otherwise.
+
+            </div>
+        </div>
+    </body>
+</html>
