@@ -16,3 +16,12 @@ class UserRatingSummary(TimestampMixin):
     income = models.DecimalField(max_digits=10, decimal_places=2)
     debts_count = models.IntegerField()
     total_debt = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def to_json(self):
+        return {
+            "date": self.date,
+            "rating": self.rating,
+            "income": self.income,
+            "debts_count": self.debts_count,
+            "total_debt": self.total_debt
+        }
