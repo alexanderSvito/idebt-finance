@@ -60,9 +60,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
     @action(methods=['post'], detail=True, permission_classes=[IsSelf])
     def set_password(self, request, pk=None, **kwargs):
         user = self.get_object()
-        serializer = PasswordSerializer(data=request.data)
+        serializer = PasswordSerializer(data=request.data, context={'current_user': request.user})
         if serializer.is_valid():
-            user.set_password(serializer.save())
+            user.set_password(serializer.validated_data['password'])
             user.save()
             return Response({'status': 'password set'})
         else:
