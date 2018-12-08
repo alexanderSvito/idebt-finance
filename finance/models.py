@@ -10,7 +10,7 @@ from idebt.helpers import get_days_from_to_date, get_admin
 from users.models import User
 
 
-class DeptStatus(Enum):
+class DebtStatus(Enum):
     CLOSED = 'closed'
     FAILED = 'failed'
     PENDING = 'pending'
@@ -163,6 +163,7 @@ class Debt(AbstractLoan):
     borrower = models.ForeignKey(User, related_name='debts', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+    total_pay_amount = models.DecimalField(decimal_places=2, max_digits=10, default=0.0)
     credit = models.ForeignKey(Offer, related_name="loans", on_delete=models.CASCADE)
     is_closed = models.BooleanField(default=False)
     is_frozen = models.BooleanField(default=False)
@@ -171,13 +172,17 @@ class Debt(AbstractLoan):
     def status(self):
         days_passed = get_days_from_to_date(self.created_at)
         if self.is_closed:
-            return DeptStatus.CLOSED
+            return DebtStatus.CLOSED
         elif self.is_frozen:
-            return DeptStatus.FROZEN
+            return DebtStatus.FROZEN
         elif days_passed > self.return_period:
-            return DeptStatus.FAILED
+            return DebtStatus.FAILED
         else:
-            return DeptStatus.PENDING
+            return DebtStatus.PENDING
+
+    @property
+    def active(self):
+        return self.status is DebtStatus.PENDING
 
     def _count_size_for_days(self, days):
         if self.is_with_capitalization:
@@ -261,6 +266,7 @@ class Debt(AbstractLoan):
                 admin,
                 amount_for_us
             )
+            self.total_pay_amount = self.loan_size + amount_for_creditor
             self.is_closed = True
             self.save()
 

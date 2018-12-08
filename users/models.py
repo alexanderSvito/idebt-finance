@@ -1,3 +1,4 @@
+from collections import Counter
 from enum import Enum
 
 from django.db import models
@@ -73,6 +74,32 @@ class User(AbstractUser):
     def replenish(self, amount):
         self.balance.balance += amount
         self.balance.save()
+
+    def get_debts_stats(self):
+        return Counter([debt.status for debt in self.debts.all()])
+
+    def get_rating_stats(self):
+        return [summary.rating for summary in self.summaries.order_by('date').all()]
+
+    def get_finance_stats(self):
+        return {
+            "all_time": {
+                "income": sum([credit.total_pay_amount for credit in self.credits.all()]),
+                "total_debt": sum([debt.total_pay_amount for debt in self.debts.filter().all()]),
+            },
+            "active_last_month": {
+                "income": sum([credit.current_size for credit in self.credits.all() if credit.active]),
+                "total_debt": sum([debt.current_size for debt in self.debts.filter().all() if debt.active]),
+            }
+
+        }
+
+    def get_all_stats(self):
+        return {
+            "debts": self.get_debts_stats(),
+            "rating": self.get_rating_stats(),
+            "finance": self.get_finance_stats(),
+        }
 
     def to_json(self):
         return {

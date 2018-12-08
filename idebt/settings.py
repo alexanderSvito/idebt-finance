@@ -13,6 +13,9 @@ import datetime
 
 import os
 
+from celery.schedules import crontab
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,14 +24,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '&x_pjy+z+4y54q))+e_w64!uobi-r$kkx=g)o0cmvbjgwc#^$+'
-SYSTEM_PASSWORD = '314159516'
 
+SYSTEM_PASSWORD = '314159516'
 SYSTEM_USERNAME = 'system'
 SHARE_PERCENTAGE = 0.01
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+RISK_PREDICTION_URL = '127.0.0.1'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -44,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users.apps.UsersConfig',
     'finance.apps.FinanceConfig',
+    'stats.apps.StatsConfig',
     'rest_framework',
     'django_extensions',
 ]
@@ -171,3 +178,19 @@ JWT_AUTH = {
 
 MIN_BUYERS_TRESHOLD = 5
 MIN_HOURS_TRESHOLD = 1
+
+
+# Celery
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_BEAT_SCHEDULE = {
+    'update_users_rating': {
+        'task': 'stats.tasks.update_users_rating',
+        'schedule': crontab(minute=0, hour=2),  # Every day at 2 A.M.
+    },
+}

@@ -8,9 +8,10 @@ urlpatterns = [
                 path(r'', include('finance.urls')),
                 path(r'user/login/', obtain_jwt_token),
                 path(r'', include('users.urls')),
-                ])
-            )
-        ]),
+                path(r'', include('stats.urls')),
+            ])
+        )
+    ]),
     )
 ]
 
