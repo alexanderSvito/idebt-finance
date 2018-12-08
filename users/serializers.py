@@ -43,15 +43,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_debt_outstanding_amount(self, obj):
         debts = Debt.objects.filter(borrower=obj, is_closed=False)
-        return functools.reduce(lambda x, y: x.current_size + y.current_size, debts) if debts else 0
+        return functools.reduce(lambda x, y: x + y.current_size, debts, 0) if debts else 0
 
     def get_interest_amount(self, obj):
         debts = Debt.objects.filter(borrower=obj, is_closed=False)
         if not debts:
             return 0
 
-        outstanding = functools.reduce(lambda x, y: x.current_size + y.current_size, debts) if debts else 0
-        initial_loans = functools.reduce(lambda x, y: x.loan_size + y.loan_size, debts) if debts else 0
+        outstanding = functools.reduce(lambda x, y: x + y.current_size, debts, 0) if debts else 0
+        initial_loans = functools.reduce(lambda x, y: x + y.loan_size, debts, 0) if debts else 0
         return outstanding - initial_loans
 
     def create(self, validated_data):
