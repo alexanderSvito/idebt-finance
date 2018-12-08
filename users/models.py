@@ -38,6 +38,7 @@ class User(AbstractUser):
     rating = models.DecimalField(decimal_places=2, max_digits=10, default=0, null=True, blank=True)
     emp_title = models.CharField(max_length=256, null=True, blank=True)
     annual_income = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
+    is_male = models.BooleanField(default=True)
     is_creditor = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     telephone = models.CharField(max_length=32, null=True, blank=True)
@@ -45,6 +46,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, null=True, blank=True)
     email = models.EmailField()
     passport_number = models.CharField(max_length=128, null=True, blank=True)
+    locale = models.CharField(max_length=2, default='ru')
 
     OPTIONAL_FIELDS = (
         'rating',
@@ -55,6 +57,10 @@ class User(AbstractUser):
         'last_name',
         'passport_number',
     )
+
+    @property
+    def full_name(self):
+        return self.first_name + ' ' + self.last_name
 
     @property
     def complete(self):
