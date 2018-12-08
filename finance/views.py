@@ -1,3 +1,6 @@
+from wsgiref.util import FileWrapper
+
+from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 
 from finance.exceptions import TransferError, CloseError
@@ -108,6 +111,14 @@ class DebtViewSet(ListMixin):
     serializer_class = DebtSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
 
+    @action(detail=True)
+    def contract(self, request, pk=None):
+        debt = self.get_object()
+        pdf_file = open(debt.contract_filename, 'rb')
+        response = HttpResponse(FileWrapper(pdf_file), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=contract_{}.pdf'.format(debt.id)
+        return response
+
     @action(detail=False)
     def i_owe(self, request):
         debts = Debt.objects.filter(borrower=request.user, is_closed=False)
@@ -161,13 +172,19 @@ class MatchViewSet(viewsets.GenericViewSet):
     )
 
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            match, is_matched = serializer.save()
-            if is_matched:
-                return Response({'status': 'matched'})
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                match, is_matched = serializer.save()
+
+                if is_matched:
+                    return Response({'status': 'matched'})
+                else:
+                    return Response({'status': 'ok'})
             else:
-                return Response({'status': 'ok'})
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Offer.DoesNotExist:
+            return Response({'detail': 'not found'})
+        except Issue.DoesNotExist:
+            return Response({'detail': 'not found'})

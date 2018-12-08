@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import models, DatabaseError, transaction
 from django.conf import settings
 from django.utils import timezone
+from django_cryptography.fields import encrypt
 
 from finance.exceptions import TransferError, CloseError
 from idebt.helpers import get_days_from_to_date, get_admin
@@ -167,6 +168,7 @@ class Debt(AbstractLoan):
     credit = models.ForeignKey(Offer, related_name="loans", on_delete=models.CASCADE)
     is_closed = models.BooleanField(default=False)
     is_frozen = models.BooleanField(default=False)
+    contract_filename = models.CharField(max_length=256)
 
     @property
     def status(self):
@@ -211,25 +213,26 @@ class Debt(AbstractLoan):
 
     @classmethod
     def create_from(cls, offer_id, issue_id):
-        offer = Offer.objects.get(pk=offer_id)
-        issue = Issue.objects.get(pk=issue_id)
-        debt = cls.objects.create(
-            creditor=offer.creditor,
-            borrower=issue.borrower,
-            loan_size=issue.amount,
-            credit=offer,
-            credit_percentage=offer.credit_percentage,
-            is_with_capitalization=offer.is_with_capitalization,
-            grace_period=offer.grace_period,
-            return_period=offer.return_period
-        )
-        offer.freeze_funds(issue.amount)
-        debt.issue_funds()
-        issue.fulfilled = True
-        issue.save()
-        issue.borrower.save()
-        offer.creditor.save()
-        return debt
+        with transaction.atomic():
+            offer = Offer.objects.get(pk=offer_id)
+            issue = Issue.objects.get(pk=issue_id)
+            debt = cls.objects.create(
+                creditor=offer.creditor,
+                borrower=issue.borrower,
+                loan_size=issue.amount,
+                credit=offer,
+                credit_percentage=offer.credit_percentage,
+                is_with_capitalization=offer.is_with_capitalization,
+                grace_period=offer.grace_period,
+                return_period=offer.return_period
+            )
+            offer.freeze_funds(issue.amount)
+            debt.issue_funds()
+            issue.fulfilled = True
+            issue.save()
+            issue.borrower.save()
+            offer.creditor.save()
+            return debt
 
     def transfer_funds(self, sender, receiver, amount):
         try:
@@ -313,3 +316,8 @@ class Match(models.Model):
         ).exists()
 
         return offer_match_exists and issue_match_exists
+
+
+class Document(models.Model):
+    date = models.DateField(auto_now_add=True)
+    plain_document = encrypt(models.TextField(max_length=1024))

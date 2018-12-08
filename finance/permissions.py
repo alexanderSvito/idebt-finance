@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from finance.models import Issue, Offer, Match
+from finance.models import Issue, Offer, Match, Debt
 
 
 class IsAdminOrPostOnly(permissions.BasePermission):
@@ -27,6 +27,8 @@ class IsOwner(permissions.BasePermission):
             return request.user == obj.borrower
         elif isinstance(obj, Offer):
             return request.user == obj.creditor
+        elif isinstance(obj, Debt):
+            return request.user == obj.creditor or request.user == obj.borrower
         else:
             return False
 

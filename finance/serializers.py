@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from finance.documents.generator import create_document
 from finance.models import Offer, Issue, Debt, Match
 from users.models import User
 
@@ -113,7 +115,10 @@ class MatchSerializer(serializers.ModelSerializer):
             issue.save()
             if issue.is_ready_for_auction:
                 winner = issue.run_auction()
-                Debt.create_from(winner.id, issue_id)
+                debt = Debt.create_from(winner.id, issue_id)
+                filename = create_document(debt)
+                debt.contract_filename = filename
+                debt.save()
                 return match, True
             else:
                 return match, False
