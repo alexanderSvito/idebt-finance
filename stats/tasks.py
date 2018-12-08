@@ -47,6 +47,7 @@ def collect_summary(user):
     summary = {
         "date": timezone.now().date(),
         "rating": user.rating,
+        "user": user.id,
         "debts_count": len([debt for debt in user.debts.all() if debt.active]),
         "total_debt": sum([debt.current_size for debt in user.debts.all() if debt.active]),
         "income": sum([credit.current_size for credit in user.credits.all() if credit.active]),

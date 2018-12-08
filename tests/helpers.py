@@ -40,7 +40,7 @@ def get_email(username):
 
 
 def get_rating():
-    return round(random.random() * 100, 2)
+    return int(round(random.random() * 100, 2))
 
 
 def get_balance(rating):
