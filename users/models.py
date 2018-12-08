@@ -79,7 +79,7 @@ class User(AbstractUser):
         return Counter([debt.status for debt in self.debts.all()])
 
     def get_rating_stats(self):
-        return [summary.rating for summary in self.summaries.order_by('date').all()]
+        return [summary.to_json() for summary in self.summaries.order_by('date').all()]
 
     def get_finance_stats(self):
         return {
@@ -97,7 +97,7 @@ class User(AbstractUser):
     def get_all_stats(self):
         return {
             "debts": self.get_debts_stats(),
-            "rating": self.get_rating_stats(),
+            "summaries": self.get_rating_stats(),
             "finance": self.get_finance_stats(),
         }
 
