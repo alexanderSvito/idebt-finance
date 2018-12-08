@@ -10,6 +10,7 @@ class UserRatingSummarySerializer(serializers.ModelSerializer):
             "id",
             "date",
             "rating",
+            "user",
             "debts_count",
             "total_debt",
             "income",

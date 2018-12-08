@@ -1,10 +1,12 @@
 import random
+import datetime
 
 from finance.models import *
 from django.core.management.base import BaseCommand
 
 from finance.serializers import MatchSerializer
-from tests.helpers import create_issue, create_offer, get_balance, create_user
+from stats.serializers import UserRatingSummarySerializer
+from tests.helpers import create_issue, create_offer, get_balance, create_user, get_rating
 from users.serializers import UserSerializer
 from tests.helpers import get_password
 
@@ -18,6 +20,35 @@ class Command(BaseCommand):
         parser.add_argument('-t', '--truncate', default=True, action='store_false')
         parser.add_argument('-d', '--debts', default=True, action='store_false')
 
+    def get_time_series(self, start, end):
+        dt = start
+        step = datetime.timedelta(hours=24)
+
+        result = []
+
+        while dt < end:
+            result.append(dt.date())
+            dt += step
+
+        return result
+
+    def generate_summaries(self, user):
+        days_in_system = random.randint(7, 100)
+        start_date = datetime.datetime.now() - datetime.timedelta(hours=24 * days_in_system)
+        for date in self.get_time_series(start_date, datetime.datetime.now()):
+            rating = get_rating()
+            summary = {
+                "date": date,
+                "rating": get_rating(),
+                "user": user.id,
+                "debts_count": random.randint(0, 4),
+                "total_debt": round(random.random() * rating * rating, 2),
+                "income": round(random.random() * rating * rating, 2)
+            }
+            serializer = UserRatingSummarySerializer(data=summary)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
     def populate_users(self, num):
         for i in range(num):
             serializer = UserSerializer(data=create_user())
@@ -27,6 +58,7 @@ class Command(BaseCommand):
                 user.balance.save()
                 user.set_password('test')
                 user.save()
+                self.generate_summaries(user)
                 self.stdout.write("User {} {} created".format(
                     user.first_name,
                     user.last_name
