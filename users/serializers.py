@@ -41,6 +41,12 @@ class UserSerializer(serializers.ModelSerializer):
             "interest_amount",
         )
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('Email already exists')
+
+        return value
+
     def get_debt_outstanding_amount(self, obj):
         debts = Debt.objects.filter(borrower=obj, is_closed=False)
         return functools.reduce(lambda x, y: x + y.current_size, debts, 0) if debts else 0
@@ -95,9 +101,9 @@ class ShallowUserSerializer(serializers.ModelSerializer):
 
 
 class PasswordSerializer(serializers.Serializer):
-    current_password = PasswordField()
+    current_password = PasswordField(required=False)
     password = PasswordField()
-    password_confirmation = PasswordField()
+    password_confirmation = PasswordField(required=False)
 
     def validate_current_password(self, value):
         current_user = self.context.get('current_user')
