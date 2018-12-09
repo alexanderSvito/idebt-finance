@@ -19,6 +19,7 @@ class DebtStatus(Enum):
 
 
 class AbstractLoan(models.Model):
+    created_at = models.DateField(auto_now_add=True)
     credit_percentage = models.DecimalField(decimal_places=2, max_digits=10)
     is_with_capitalization = models.BooleanField(default=False)
 
@@ -32,8 +33,8 @@ class AbstractLoan(models.Model):
 class Issue(models.Model):
     borrower = models.ForeignKey(User, related_name='issues', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    amount = models.DecimalField(decimal_places=2, max_digits=10)
-    max_overpay = models.DecimalField(decimal_places=2, max_digits=10)
+    amount = models.DecimalField(decimal_places=2, max_digits=50)
+    max_overpay = models.DecimalField(decimal_places=2, max_digits=50)
     min_credit_period = models.IntegerField()
     fulfilled = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
@@ -98,10 +99,10 @@ class Issue(models.Model):
 
 class Offer(AbstractLoan):
     creditor = models.ForeignKey(User, related_name='offers', on_delete=models.CASCADE)
-    credit_fund = models.DecimalField(decimal_places=2, max_digits=10)
-    used_funds = models.DecimalField(decimal_places=2, max_digits=10, default=0)
-    min_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
-    max_loan_size = models.DecimalField(decimal_places=2, max_digits=10)
+    credit_fund = models.DecimalField(decimal_places=2, max_digits=50)
+    used_funds = models.DecimalField(decimal_places=2, max_digits=50, default=0)
+    min_loan_size = models.DecimalField(decimal_places=2, max_digits=50)
+    max_loan_size = models.DecimalField(decimal_places=2, max_digits=50)
     lots = models.ManyToManyField(Issue, related_name='buyers')
     is_closed = models.BooleanField(default=False)
 
@@ -162,10 +163,12 @@ class Offer(AbstractLoan):
 class Debt(AbstractLoan):
     creditor = models.ForeignKey(User, related_name='credits', on_delete=models.CASCADE)
     borrower = models.ForeignKey(User, related_name='debts', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    loan_size = models.DecimalField(decimal_places=2, max_digits=10)
-    total_pay_amount = models.DecimalField(decimal_places=2, max_digits=10, default=0.0)
+    closed_at = models.DateTimeField(null=True)
+    frozen_at = models.DateTimeField(null=True)
+    loan_size = models.DecimalField(decimal_places=2, max_digits=50)
+    total_pay_amount = models.DecimalField(decimal_places=2, max_digits=50, default=0.0)
     credit = models.ForeignKey(Offer, related_name="loans", on_delete=models.CASCADE)
+    issue = models.OneToOneField(Issue, related_name="investment", on_delete=models.CASCADE)
     is_closed = models.BooleanField(default=False)
     is_frozen = models.BooleanField(default=False)
     contract_filename = models.CharField(max_length=256)
@@ -220,6 +223,7 @@ class Debt(AbstractLoan):
                 creditor=offer.creditor,
                 borrower=issue.borrower,
                 loan_size=issue.amount,
+                issue=issue,
                 credit=offer,
                 credit_percentage=offer.credit_percentage,
                 is_with_capitalization=offer.is_with_capitalization,
@@ -255,7 +259,11 @@ class Debt(AbstractLoan):
             amount
         )
 
-    def repay_funds(self):
+    def freeze(self):
+        self.frozen_at = timezone.now().date()
+        self.save()
+
+    def repay_funds(self, date=timezone.now().date()):
         amount_for_creditor, amount_for_us = self.split_profit()
         admin = get_admin()
         with transaction.atomic():
@@ -271,6 +279,7 @@ class Debt(AbstractLoan):
             )
             self.total_pay_amount = self.loan_size + amount_for_creditor
             self.is_closed = True
+            self.closed_at = date
             self.save()
 
     def split_profit(self):

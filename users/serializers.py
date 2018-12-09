@@ -32,6 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
             "annual_income",
             "is_creditor",
             "is_locked",
+            "date_joined"
         )
 
     def create(self, validated_data):

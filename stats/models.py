@@ -13,9 +13,9 @@ class TimestampMixin(models.Model):
 class UserRatingSummary(TimestampMixin):
     user = models.ForeignKey(User, related_name='summaries', on_delete=models.CASCADE)
     rating = models.IntegerField()
-    income = models.DecimalField(max_digits=10, decimal_places=2)
+    income = models.DecimalField(max_digits=50, decimal_places=2)
     debts_count = models.IntegerField()
-    total_debt = models.DecimalField(max_digits=10, decimal_places=2)
+    total_debt = models.DecimalField(max_digits=50, decimal_places=2)
 
     def to_json(self):
         return {
