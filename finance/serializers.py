@@ -87,7 +87,7 @@ class DebtSerializer(serializers.ModelSerializer):
             'size_in_month',
             'credit_percentage',
             'created_at',
-            'is_with_capitalization'
+            'is_with_capitalization',
         )
 
 

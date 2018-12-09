@@ -111,7 +111,7 @@ class DebtViewSet(ListMixin):
     serializer_class = DebtSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
 
-    @action(detail=True)
+    @action(detail=True, permission_classes=[permissions.AllowAny])
     def contract(self, request, pk=None):
         debt = self.get_object()
         pdf_file = open(debt.contract_filename, 'rb')

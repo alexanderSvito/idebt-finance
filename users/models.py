@@ -1,3 +1,5 @@
+import decimal
+
 from collections import Counter
 from enum import Enum
 
@@ -71,14 +73,16 @@ class User(AbstractUser):
         return True
 
     def withdraw(self, amount):
-        if amount > self.balance.balance:
+        exp = 1e-10
+        decimal_amount = decimal.Decimal(amount)
+        if decimal_amount > self.balance.balance and abs(decimal_amount - self.balance.balance) > exp:
             raise TransferError("Insufficient funds")
 
-        self.balance.balance -= amount
+        self.balance.balance -= decimal_amount
         self.balance.save()
 
     def replenish(self, amount):
-        self.balance.balance += amount
+        self.balance.balance += decimal.Decimal(amount)
         self.balance.save()
 
     def get_debts_stats(self):
