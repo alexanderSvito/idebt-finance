@@ -11,11 +11,17 @@ from django.conf import settings
 import pdfkit
 from num2words import num2words
 
+from finance.currencies import convert_from_base
 from finance.models import Document
 
 
 LOCAL_DIR = os.path.join(settings.BASE_DIR, 'finance', 'documents')
 DATE_FORMAT = "%Y, %B %-d"
+
+CURRENCIES_MAP = {
+    "ru": "BYN",
+    "en": "USD",
+}
 
 
 def get_loan_size(loan):
@@ -57,6 +63,9 @@ def create_document(debt):
         locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
     elif debt.creditor.locale == 'en':
         locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+
+    currency = CURRENCIES_MAP[debt.creditor.locale]
+    converted = convert_from_base(debt.loan_size, currency)
     document = {
         "document_id": debt.id,
         "date": debt.created_at.strftime(DATE_FORMAT),
@@ -64,8 +73,8 @@ def create_document(debt):
         "creditor_gender": debt.creditor.is_male,
         "borrower_name": debt.borrower.full_name,
         "borrower_gender": debt.borrower.is_male,
-        "loan_size": get_loan_size(debt.loan_size),
-        "verb_loan_size": get_verbose_loan_size(debt.loan_size, debt.creditor.locale),
+        "loan_size": get_loan_size(converted),
+        "verb_loan_size": get_verbose_loan_size(converted, debt.creditor.locale),
         "percentage_year": float(round(debt.credit_percentage * 365, 2)),
         "percentage": float(debt.credit_percentage),
         "last_return_day": (debt.created_at + datetime.timedelta(hours=24 * debt.return_period)).strftime(DATE_FORMAT),

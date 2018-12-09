@@ -25,3 +25,10 @@ class UserRatingSummary(TimestampMixin):
             "debts_count": self.debts_count,
             "total_debt": self.total_debt
         }
+
+
+class CurrencySummary(TimestampMixin):
+    base = models.CharField(max_length=3)
+    currency = models.CharField(max_length=3)
+    base_rate = models.DecimalField(max_digits=50, decimal_places=10)
+    currency_rate = models.DecimalField(max_digits=50, decimal_places=10)
