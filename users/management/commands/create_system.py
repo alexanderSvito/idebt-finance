@@ -1,10 +1,6 @@
-import random
-
 from finance.models import *
 from django.core.management.base import BaseCommand
 
-from finance.serializers import MatchSerializer
-from tests.helpers import create_issue, create_offer, get_balance, create_user
 from users.serializers import UserSerializer, PasswordSerializer
 
 
@@ -27,7 +23,7 @@ class Command(BaseCommand):
             "username": "system",
             "email": "admin@idebt.com",
             "passport_number": "AAAAAAAA-AAAAAAAA",
-            "balance": 1000000,
+            "balance": 0,
             "password": settings.SYSTEM_PASSWORD
         })
         if serializer.is_valid():

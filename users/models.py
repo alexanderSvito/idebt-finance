@@ -21,7 +21,7 @@ class DebitCards(Enum):
 
 
 class Balance(models.Model):
-    balance = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    balance = models.DecimalField(decimal_places=2, max_digits=50, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -86,7 +86,7 @@ class User(AbstractUser):
         self.balance.save()
 
     def get_debts_stats(self):
-        return Counter([debt.status for debt in self.debts.all()])
+        return dict(Counter([debt.status.value for debt in self.debts.all()]))
 
     def get_rating_stats(self):
         return [summary.to_json() for summary in self.summaries.order_by('date').all()]

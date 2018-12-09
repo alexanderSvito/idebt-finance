@@ -43,18 +43,21 @@ def update_rating(user):
     user.save()
 
 
-def collect_summary(user):
+def collect_summary(user, date=timezone.now().date()):
     summary = {
-        "date": timezone.now().date(),
+        "date": date,
         "rating": user.rating,
         "user": user.id,
         "debts_count": len([debt for debt in user.debts.all() if debt.active]),
-        "total_debt": sum([debt.current_size for debt in user.debts.all() if debt.active]),
-        "income": sum([credit.current_size for credit in user.credits.all() if credit.active]),
+        "total_debt": round(sum([debt.current_size for debt in user.debts.all() if debt.active]), 2),
+        "income": round(sum([credit.current_size for credit in user.credits.all() if credit.active]), 2),
     }
     serializer = UserRatingSummarySerializer(data=summary)
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        print(serializer.errors)
+        print(serializer.initial_data)
 
 
 @app.task

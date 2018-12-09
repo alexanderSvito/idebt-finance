@@ -37,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
             "annual_income",
             "is_creditor",
             "is_locked",
+            "date_joined",
             "debt_outstanding_amount",
             "interest_amount",
         )
