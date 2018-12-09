@@ -2,6 +2,7 @@ import datetime
 import json
 import hashlib
 import os
+
 import locale
 
 from django.template import Template, Context
