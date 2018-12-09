@@ -66,7 +66,7 @@ class CreateCloseMixin(viewsets.ReadOnlyModelViewSet):
 class OffersViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'creditor'
 
-    queryset = Offer.objects.all()
+    queryset = Offer.objects.filter(is_closed=False)
     serializer_class = OfferSerializer
     permission_classes = (permissions.IsAuthenticated, IsCreditor, IsOwner)
 
@@ -87,7 +87,7 @@ class OffersViewSet(ListMixin, CreateCloseMixin):
 class IssueViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'borrower'
 
-    queryset = Issue.objects.all()
+    queryset = Issue.objects.filter(is_closed=False)
     serializer_class = IssueSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
 
