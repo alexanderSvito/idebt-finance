@@ -1,5 +1,6 @@
 import urllib
 import logging
+from decimal import Decimal
 
 import requests
 
@@ -45,7 +46,7 @@ def request_rates(currency):
     if data['success']:
         return data['rates']
     else:
-        logger.error("Couldn't retrieve currencies for transaction. CHack API reference.")
+        logger.error("Couldn't retrieve currencies for transaction. Check API reference.")
 
 
 def get_rates(currency):
@@ -71,9 +72,9 @@ def get_rates(currency):
 
 def convert_to_base(amount, currency):
     rates = get_rates(currency)
-    return amount * rates[settings.BASE_CURRENCY] / rates[currency]
+    return amount * Decimal(rates[settings.BASE_CURRENCY] / rates[currency])
 
 
 def convert_from_base(amount, currency):
     rates = get_rates(currency)
-    return amount * rates[currency] / rates[settings.BASE_CURRENCY]
+    return amount * Decimal(rates[currency] / rates[settings.BASE_CURRENCY])
