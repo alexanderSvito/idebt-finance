@@ -11,6 +11,16 @@ from stats.models import CurrencySummary
 logger = logging.getLogger(__file__)
 
 
+DEBUG = True
+
+MOCK_RATES = {
+    "USD": 1.138246,
+    "RUB": 0.75601153,
+    "BYN": 2.426855,
+    "EUR": 1,
+}
+
+
 def save_rates(rates, currency):
     CurrencySummary.objects.create(
         base=settings.BASE_CURRENCY,
@@ -39,6 +49,8 @@ def request_rates(currency):
 
 
 def get_rates(currency):
+    if DEBUG:
+        return MOCK_RATES
     if CurrencySummary.objects.filter(
             date=timezone.now().date(),
             base=settings.BASE_CURRENCY,
