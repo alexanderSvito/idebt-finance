@@ -78,7 +78,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
             user.replenish(request.data['amount'])
             return Response({'status': 'balance updated'})
         except Exception as e:
-            return Response(str(e),
+            return Response({'amount': str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'],
@@ -90,7 +90,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
             user.withdraw(request.data['amount'])
             return Response({'status': 'balance updated'})
         except TransferError as e:
-            return Response(str(e),
+            return Response({'amount': str(e)},
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'], detail=False, permission_classes=[permissions.AllowAny])
