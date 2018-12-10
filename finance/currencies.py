@@ -16,7 +16,7 @@ DEBUG = True
 
 MOCK_RATES = {
     "USD": 1.138246,
-    "RUB": 0.75601153,
+    "RUB": 75.601153,
     "BYN": 2.426855,
     "EUR": 1,
 }
@@ -72,9 +72,9 @@ def get_rates(currency):
 
 def convert_to_base(amount, currency):
     rates = get_rates(currency)
-    return amount * Decimal(rates[settings.BASE_CURRENCY] / rates[currency])
+    return Decimal(amount) * Decimal(rates[settings.BASE_CURRENCY] / rates[currency])
 
 
 def convert_from_base(amount, currency):
     rates = get_rates(currency)
-    return amount * Decimal(rates[currency] / rates[settings.BASE_CURRENCY])
+    return Decimal(amount) * Decimal(rates[currency] / rates[settings.BASE_CURRENCY])

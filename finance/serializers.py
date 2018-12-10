@@ -1,11 +1,17 @@
-from rest_framework import serializers
+from decimal import Decimal
 
+from rest_framework import serializers
 from finance.documents.generator import create_document
 from finance.models import Offer, Issue, Debt, Match
 from users.models import User
 
 
 class OfferSerializer(serializers.ModelSerializer):
+    credit_fund = serializers.DecimalField(max_digits=6, decimal_places=2)
+    credit_percentage = serializers.DecimalField(decimal_places=2, max_digits=5, min_value=0, max_value=100)
+    grace_period = serializers.IntegerField(min_value=0, max_value=365)
+    return_period = serializers.IntegerField(min_value=0, max_value=365)
+
     class Meta:
         model = Offer
         fields = (
@@ -22,12 +28,6 @@ class OfferSerializer(serializers.ModelSerializer):
             'is_closed'
         )
 
-    def validate_creditor(self, value):
-        user = User.objects.get(pk=self.initial_data['creditor'])
-        if not user.is_creditor:
-            raise serializers.ValidationError("Can't create a credit plan if user is not a creditor.")
-        return value
-
     def validate_credit_fund(self, value):
         user = User.objects.get(pk=self.initial_data['creditor'])
         if value > user.balance.balance:
@@ -35,18 +35,21 @@ class OfferSerializer(serializers.ModelSerializer):
         return value
 
     def validate_min_loan_size(self, value):
-        if value > int(self.initial_data['credit_fund']):
+        if value > Decimal(self.initial_data['credit_fund']):
             raise serializers.ValidationError("Can't make min loan size bigger than credit fund.")
         return value
 
     def validate_max_loan_size(self, value):
-        if value > int(self.initial_data['credit_fund']):
+        if value > Decimal(self.initial_data['credit_fund']):
             raise serializers.ValidationError("Can't make max loan size bigger than credit fund.")
         return value
 
 
 class IssueSerializer(serializers.ModelSerializer):
     borrower_stats = serializers.SerializerMethodField()
+    amount = serializers.DecimalField(max_digits=6, decimal_places=2)
+    max_overpay = serializers.DecimalField(max_digits=8, decimal_places=2)
+    min_credit_period = serializers.IntegerField(min_value=0, max_value=365)
 
     class Meta:
         model = Issue
@@ -61,7 +64,7 @@ class IssueSerializer(serializers.ModelSerializer):
         )
 
     def validate_max_overpay(self, value):
-        if value < int(self.initial_data['amount']):
+        if value < Decimal(self.initial_data['amount']):
             raise serializers.ValidationError("Overpay can't be smaller than initial credit amount.")
         return value
 

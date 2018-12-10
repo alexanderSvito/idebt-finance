@@ -36,6 +36,8 @@ class CreditCard(models.Model):
 
 
 class User(AbstractUser):
+    BALANCE_LIMIT = 10000
+
     balance = models.OneToOneField(Balance, related_name='owner', on_delete=models.CASCADE, null=True, blank=True)
     rating = models.DecimalField(decimal_places=2, max_digits=10, default=0, null=True, blank=True)
     emp_title = models.CharField(max_length=256, null=True, blank=True)
@@ -82,6 +84,11 @@ class User(AbstractUser):
         self.balance.save()
 
     def replenish(self, amount):
+        exp = 1e-10
+        new_amount = amount + self.balance.balance
+        if new_amount > self.BALANCE_LIMIT and abs(new_amount - self.BALANCE_LIMIT) > exp:
+            raise TransferError("Funds limit exceeded")
+
         self.balance.balance += decimal.Decimal(amount)
         self.balance.save()
 
