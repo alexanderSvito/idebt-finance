@@ -1,10 +1,11 @@
 from wsgiref.util import FileWrapper
 
 from django.http import HttpResponse
+from django.db.models import F
 from rest_framework import viewsets, permissions, status
 
 from finance.exceptions import TransferError, CloseError
-from finance.permissions import IsCreditor, IsAdminOrPostOnly, IsOwner, IsBorrower, IsMatchable
+from finance.permissions import IsAdminOrPostOnly, IsOwner, IsBorrower, IsMatchable
 from finance.serializers import OfferSerializer, IssueSerializer, MatchSerializer, DebtSerializer
 
 from finance.models import Offer, Issue, Match, Debt
@@ -66,9 +67,8 @@ class CreateCloseMixin(viewsets.ReadOnlyModelViewSet):
 class OffersViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'creditor'
 
-    queryset = Offer.objects.filter(is_closed=False)
     serializer_class = OfferSerializer
-    permission_classes = (permissions.IsAuthenticated, IsCreditor, IsOwner)
+    permission_classes = (permissions.IsAuthenticated, IsOwner)
 
     @action(detail=True)
     def suitable(self, request, pk=None):
@@ -83,11 +83,15 @@ class OffersViewSet(ListMixin, CreateCloseMixin):
         serializer = IssueSerializer(suitable_issues, many=True)
         return Response(serializer.data)
 
+    def get_queryset(self):
+        queryset = Offer.objects.annotate(rest_fund=F('credit_fund') - F('used_funds'))
+        return queryset.filter(is_closed=False, rest_fund__gte=F('min_loan_size'))
+
 
 class IssueViewSet(ListMixin, CreateCloseMixin):
     OWNER_NAME = 'borrower'
 
-    queryset = Issue.objects.filter(is_closed=False)
+    queryset = Issue.objects.filter(is_closed=False, fulfilled=False)
     serializer_class = IssueSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
 

@@ -4,10 +4,10 @@ from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
-router.register(r'offers', views.OffersViewSet)
-router.register(r'issues', views.IssueViewSet)
-router.register(r'debts', views.DebtViewSet)
-router.register(r'match', views.MatchViewSet)
+router.register(r'offers', views.OffersViewSet, base_name='offers')
+router.register(r'issues', views.IssueViewSet, base_name='issues')
+router.register(r'debts', views.DebtViewSet, base_name='debts')
+router.register(r'match', views.MatchViewSet, base_name='match')
 
 
 urlpatterns = [

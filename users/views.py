@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
 
-from finance.currencies import convert_to_base, convert_from_base
+from finance.currencies import convert_to_base
 from finance.exceptions import TransferError
 from finance.permissions import IsSelf
 from users.models import User
@@ -89,7 +89,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet, UpdateModelMixin):
     def withdraw(self, request, pk=None, **kwargs):
         user = self.get_object()
         try:
-            converted = convert_from_base(request.data['amount'], request.data['currency'])
+            converted = convert_to_base(request.data['amount'], request.data['currency'])
             user.withdraw(converted)
             return Response({'status': 'balance updated'})
         except TransferError as e:
